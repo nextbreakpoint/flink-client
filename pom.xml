@@ -56,8 +56,8 @@
         <nexus.autoreleaseafterclose>true</nexus.autoreleaseafterclose>
         <bintray.url>https://api.bintray.com/maven/${bintrayAccount}/maven/${project.artifactId}/;publish=1</bintray.url>
         <gson-fire.version>1.8.3</gson-fire.version>
-        <okhttp.version>3.8.0</okhttp.version>
-        <!--<okhttp.version>2.7.5</okhttp.version>-->
+        <!--<okhttp.version>3.8.0</okhttp.version>-->
+        <okhttp.version>2.7.5</okhttp.version>
         <joda-time.version>2.10.1</joda-time.version>
         <jackson-annotations.version>2.9.8</jackson-annotations.version>
         <jsr250-api.version>1.0</jsr250-api.version>
@@ -71,16 +71,16 @@
             <artifactId>swagger-annotations</artifactId>
             <version>${swagger-annotations.version}</version>
         </dependency>
-        <dependency>
-            <groupId>com.squareup.okhttp3</groupId>
-            <artifactId>okhttp</artifactId>
-            <version>${okhttp.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.squareup.okhttp3</groupId>
-            <artifactId>logging-interceptor</artifactId>
-            <version>${okhttp.version}</version>
-        </dependency>
+        <!--<dependency>-->
+            <!--<groupId>com.squareup.okhttp3</groupId>-->
+            <!--<artifactId>okhttp</artifactId>-->
+            <!--<version>${okhttp.version}</version>-->
+        <!--</dependency>-->
+        <!--<dependency>-->
+            <!--<groupId>com.squareup.okhttp3</groupId>-->
+            <!--<artifactId>logging-interceptor</artifactId>-->
+            <!--<version>${okhttp.version}</version>-->
+        <!--</dependency>-->
         <dependency>
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
@@ -91,16 +91,16 @@
             <artifactId>gson-fire</artifactId>
             <version>${gson-fire.version}</version>
         </dependency>
-        <!--<dependency>-->
-            <!--<groupId>com.squareup.okhttp</groupId>-->
-            <!--<artifactId>okhttp</artifactId>-->
-            <!--<version>${okhttp.version}</version>-->
-        <!--</dependency>-->
-        <!--<dependency>-->
-            <!--<groupId>com.squareup.okhttp</groupId>-->
-            <!--<artifactId>logging-interceptor</artifactId>-->
-            <!--<version>${okhttp.version}</version>-->
-        <!--</dependency>-->
+        <dependency>
+            <groupId>com.squareup.okhttp</groupId>
+            <artifactId>okhttp</artifactId>
+            <version>${okhttp.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.squareup.okhttp</groupId>
+            <artifactId>logging-interceptor</artifactId>
+            <version>${okhttp.version}</version>
+        </dependency>
         <dependency>
             <groupId>javax.annotation</groupId>
             <artifactId>jsr250-api</artifactId>
@@ -150,8 +150,8 @@
         </dependency>
     </dependencies>
     <build>
-        <sourceDirectory>src/main/kotlin</sourceDirectory>
-        <testSourceDirectory>src/test/kotlin</testSourceDirectory>
+        <sourceDirectory>src/main/java</sourceDirectory>
+        <testSourceDirectory>src/test/java</testSourceDirectory>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -248,11 +248,13 @@
                         </goals>
                         <configuration>
                             <inputSpec>${project.basedir}/src/main/resources/flink-openapi.yaml</inputSpec>
-                            <language>kotlin-client</language>
+                            <language>java</language>
+                            <invokerPackage>com.nextbreakpoint.flinkclient.api</invokerPackage>
                             <modelPackage>com.nextbreakpoint.flinkclient.model</modelPackage>
                             <apiPackage>com.nextbreakpoint.flinkclient.api</apiPackage>
+                            <generateApiTests>false</generateApiTests>
                             <configOptions>
-                                <sourceFolder>src/main/kotlin</sourceFolder>
+                                <sourceFolder>src/main/java</sourceFolder>
                             </configOptions>
                         </configuration>
                     </execution>

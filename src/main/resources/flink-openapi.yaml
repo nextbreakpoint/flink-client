@@ -57,7 +57,7 @@ components:
         name:
           type: string
         uploaded:
-          type: integer
+          type: long
         entry:
           type: array
           items:
@@ -171,17 +171,17 @@ components:
           - SUSPENDED
           - RECONCILING
         start-time:
-          type: integer
+          type: long
         end-time:
-          type: integer
+          type: long
         duration:
-          type: integer
+          type: long
         now:
-          type: integer
+          type: long
         timestamps:
           type: object
           additionalProperties:
-            type: integer
+            type: long
         vertices:
           type: array
           items:
@@ -192,7 +192,33 @@ components:
           additionalProperties:
             type: integer
         plan:
+          type: object
+          $ref: '#/components/schemas/JobDetailsInfoJobPlan'
+    JobDetailsInfoJobPlan:
+      properties:
+        jid:
+          type: object
+        name:
           type: string
+        nodes:
+          type: array
+          items:
+            type: object
+            $ref: '#/components/schemas/JobDetailsInfoNode'
+    JobDetailsInfoNode:
+      properties:
+        id:
+          type: object
+        parallelism:
+          type: integer
+        operator:
+          type: string
+        operator_strategy:
+          type: string
+        description:
+          type: string
+        optimizer_properties:
+          type: object
     JobDetailsInfoJobVertexDetailsInfo:
       properties:
         id:
@@ -214,11 +240,11 @@ components:
           - FAILED
           - RECONCILING
         start-time:
-          type: integer
+          type: long
         end-time:
-          type: integer
+          type: long
         duration:
-          type: integer
+          type: long
         tasks:
           type: object
           additionalProperties:
@@ -229,19 +255,19 @@ components:
     IOMetricsInfo:
       properties:
         read-bytes:
-          type: integer
+          type: long
         read-bytes-complete:
           type: boolean
         write-bytes:
-          type: integer
+          type: long
         write-bytes-complete:
           type: boolean
         read-records:
-          type: integer
+          type: long
         read-records-complete:
           type: boolean
         write-records:
-          type: integer
+          type: long
         write-records-complete:
           type: boolean
     JobAccumulatorsInfo:
@@ -286,15 +312,15 @@ components:
     CheckpointingStatisticsCounts:
       properties:
         restored:
-          type: integer
+          type: long
         total:
-          type: integer
+          type: long
         in_progress:
-          type: integer
+          type: long
         completed:
-          type: integer
+          type: long
         failed:
-          type: integer
+          type: long
     CheckpointingStatisticsSummary:
       properties:
         state_size:
@@ -309,11 +335,11 @@ components:
     MinMaxAvgStatistics:
       properties:
         min:
-          type: integer
+          type: long
         max:
-          type: integer
+          type: long
         avg:
-          type: integer
+          type: long
     CheckpointingStatisticsLatestCheckpoints:
       properties:
         completed:
@@ -341,15 +367,15 @@ components:
         is_savepoint:
           type: boolean
         trigger_timestamp:
-          type: integer
+          type: long
         latest_ack_timestamp:
-          type: integer
+          type: long
         state_size:
-          type: integer
+          type: long
         end_to_end_duration:
-          type: integer
+          type: long
         alignment_buffered:
-          type: integer
+          type: long
         num_subtasks:
           type: integer
         num_acknowledged_subtasks:
@@ -374,13 +400,13 @@ components:
           - COMPLETED
           - FAILED
         latest_ack_timestamp:
-          type: integer
+          type: long
         state_size:
-          type: integer
+          type: long
         end_to_end_duration:
-          type: integer
+          type: long
         alignment_buffered:
-          type: integer
+          type: long
         num_subtasks:
           type: integer
         num_acknowledged_subtasks:
@@ -398,15 +424,15 @@ components:
         is_savepoint:
           type: boolean
         trigger_timestamp:
-          type: integer
+          type: long
         latest_ack_timestamp:
-          type: integer
+          type: long
         state_size:
-          type: integer
+          type: long
         end_to_end_duration:
-          type: integer
+          type: long
         alignment_buffered:
-          type: integer
+          type: long
         num_subtasks:
           type: integer
         num_acknowledged_subtasks:
@@ -417,7 +443,7 @@ components:
             type: object
             $ref: '#/components/schemas/TaskCheckpointStatistics'
         failure_timestamp:
-          type: integer
+          type: long
         failure_message:
           type: string
     RestoredCheckpointStatistics:
@@ -425,7 +451,7 @@ components:
         id:
           type: integer
         restore_timestamp:
-          type: integer
+          type: long
         is_savepoint:
           type: boolean
         external_path:
@@ -443,15 +469,15 @@ components:
         is_savepoint:
           type: boolean
         trigger_timestamp:
-          type: integer
+          type: long
         latest_ack_timestamp:
-          type: integer
+          type: long
         state_size:
-          type: integer
+          type: long
         end_to_end_duration:
-          type: integer
+          type: long
         alignment_buffered:
-          type: integer
+          type: long
         num_subtasks:
           type: integer
         num_acknowledged_subtasks:
@@ -466,11 +492,11 @@ components:
         mode:
           type: object
         interval:
-          type: integer
+          type: long
         timeout:
-          type: integer
+          type: long
         min_pause:
-          type: integer
+          type: long
         max_concurrent:
           type: integer
         externalization:
@@ -493,13 +519,13 @@ components:
           - COMPLETED
           - FAILED
         latest_ack_timestamp:
-          type: integer
+          type: long
         state_size:
-          type: integer
+          type: long
         end_to_end_duration:
-          type: integer
+          type: long
         alignment_buffered:
-          type: integer
+          type: long
         num_subtasks:
           type: integer
         num_acknowledged_subtasks:
@@ -553,7 +579,7 @@ components:
         root-exception:
           type: string
         timestamp:
-          type: integer
+          type: long
         all-exceptions:
           type: array
           items:
@@ -570,7 +596,7 @@ components:
         location:
           type: string
         timestamp:
-          type: integer
+          type: long
     JobExecutionResultResponseBody:
       properties:
         status:
@@ -617,7 +643,7 @@ components:
           parallelism:
             type: integer
           now:
-            type: integer
+            type: long
           subtasks:
             type: array
             items:
@@ -644,11 +670,11 @@ components:
           host:
             type: string
           start_time:
-            type: integer
+            type: long
           end-time:
-            type: integer
+            type: long
           duration:
-            type: integer
+            type: long
           metrics:
             type: object
             $ref: '#/components/schemas/IOMetricsInfo'
@@ -683,7 +709,7 @@ components:
           - low
           - high
         end-timestamp:
-          type: integer
+          type: long
         subtasks:
           type: array
           items:
@@ -746,11 +772,11 @@ components:
         host:
           type: string
         start-time:
-          type: integer
+          type: long
         end-time:
-          type: integer
+          type: long
         duration:
-          type: integer
+          type: long
         metrics:
           type: object
           $ref: '#/components/schemas/IOMetricsInfo'
@@ -774,7 +800,7 @@ components:
         name:
           type: string
         now:
-          type: integer
+          type: long
         subtasks:
           type: array
           items:
@@ -787,11 +813,11 @@ components:
         host:
           type: string
         duration:
-          type: integer
+          type: long
         timestamps:
           type: object
           additionalProperties:
-            type: integer
+            type: long
     JobVertexTaskManagersInfo:
       properties:
         id:
@@ -799,7 +825,7 @@ components:
         name:
           type: string
         now:
-          type: integer
+          type: long
         taskmanagers:
           type: array
           items:
@@ -822,11 +848,11 @@ components:
           - FAILED
           - RECONCILING
         start-time:
-          type: integer
+          type: long
         end-time:
-          type: integer
+          type: long
         duration:
-          type: integer
+          type: long
         metrics:
           type: object
           $ref: '#/components/schemas/IOMetricsInfo'
@@ -887,11 +913,11 @@ components:
         cpuCores:
           type: integer
         physicalMemory:
-          type: integer
+          type: long
         freeMemory:
-          type: integer
+          type: long
         managedMemory:
-          type: integer
+          type: long
     TaskManagerDetailsInfo:
       properties:
         id:
@@ -915,33 +941,33 @@ components:
     TaskManagerMetricsInfo:
       properties:
         heapUsed:
-          type: integer
+          type: long
         heapCommitted:
-          type: integer
+          type: long
         heapMax:
-          type: integer
+          type: long
         nonHeapUsed:
-          type: integer
+          type: long
         nonHeapCommitted:
-          type: integer
+          type: long
         nonHeapMax:
-          type: integer
+          type: long
         directCount:
-          type: integer
+          type: long
         directUsed:
-          type: integer
+          type: long
         directMax:
-          type: integer
+          type: long
         mappedCount:
-          type: integer
+          type: long
         mappedUsed:
-          type: integer
+          type: long
         mappedMax:
-          type: integer
+          type: long
         memorySegmentsAvailable:
-          type: integer
+          type: long
         memorySegmentsTotal:
-          type: integer
+          type: long
         garbageCollectors:
           type: array
           items:
@@ -954,7 +980,7 @@ components:
         count:
           type: integer
         time:
-          type: integer
+          type: long
 paths:
   /v1/cluster:
     delete:
@@ -1063,6 +1089,12 @@ paths:
           required: false
           schema:
             type: integer
+#      requestBody:
+#        required: false
+#        content:
+#          application/json:
+#            schema:
+#              $ref: '#/components/schemas/JarPlanRequestBody'
       responses:
         '200':
           description: |-
