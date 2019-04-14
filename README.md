@@ -13,7 +13,7 @@ If you are using Maven, add this dependency in your POM:
     <dependency>
         <groupId>com.nextbreakpoint</groupId>
         <artifactId>com.nextbreakpoint.flinkclient</artifactId>
-        <version>1.0.0-alpha-1</version>
+        <version>1.0.0-alpha</version>
     </dependency>        
 
 ## License
