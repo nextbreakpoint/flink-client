@@ -4,18 +4,6 @@ This library provides a Java client for managing and monitoring Apache Flink via
 
 The client is generated with [Swagger Codegen](https://swagger.io/tools/swagger-codegen/) from an OpenAPI specification file and it is **currently in alpha version**.
 
-## Getting the binaries
-
-The library is available in Maven Central Repository and Bintray.
-
-If you are using Maven, add this dependency in your POM:
-
-    <dependency>
-        <groupId>com.nextbreakpoint</groupId>
-        <artifactId>com.nextbreakpoint.flinkclient</artifactId>
-        <version>1.0.0-alpha</version>
-    </dependency>        
-
 ## License
 
 The library is distributed under the terms of BSD 3-Clause License.
@@ -48,15 +36,27 @@ The library is distributed under the terms of BSD 3-Clause License.
     OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
     OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-## How to build
+## How to get the binaries
 
-Build the library using Maven:
+The library is available in Maven Central Repository and Bintray.
+
+If you are using Maven, add this dependency to your POM:
+
+    <dependency>
+        <groupId>com.nextbreakpoint</groupId>
+        <artifactId>com.nextbreakpoint.flinkclient</artifactId>
+        <version>1.0.0-alpha</version>
+    </dependency>        
+
+## Build from source code
+
+Checkout the code and build the library using Maven:
 
     mvn clean package
 
 ## Documentation
 
-Create the client object:
+Create the Flink client:
 
     FlinkApi api = new FlinkApi();
 
@@ -70,11 +70,11 @@ Configure socket timeouts:
     api.getApiClient().getHttpClient().setWriteTimeout(30000, TimeUnit.MILLISECONDS)
     api.getApiClient().getHttpClient().setReadTimeout(30000, TimeUnit.MILLISECONDS)
 
-Enable debugging if needed:
+Optionally enable debugging:
 
     api.getApiClient().setIsDebugging(true)
 
-Get the cluster configuration:
+Get Flink cluster configuration:
 
     DashboardConfiguration config = api.showConfig();
 
@@ -86,7 +86,7 @@ Upload a jar which contain a Flink job:
 
     JarUploadResponseBody result = api.uploadJar(new File("flink-job.jar"));
 
-Run the upload jar which some arguments:
+Run an uploaded jar which some arguments:
 
     JarRunResponseBody response = api.runJar("bf4afb3b-d662-435e-b465-5ddb40d68379_flink-job.jar", true, null, "--INPUT A --OUTPUT B", null, "your-main-class", null);
 
@@ -102,7 +102,7 @@ Terminate a job:
 
     api.terminateJob("f370f5421e5254eed8d6fc6673829c83", "cancel");
 
-For all the remaining operations see documentation of Monitoring REST API or OpenAPI file (flink-api.yaml).
+For all the remaining operations see documentation of Monitoring REST API or see OpenAPI file (flink-api.yaml).
 
 ## Known limitations
 
