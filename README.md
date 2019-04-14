@@ -38,7 +38,7 @@ The library is distributed under the terms of BSD 3-Clause License.
 
 ## How to get the binaries
 
-The library is available in Maven Central Repository and Bintray.
+The library is available in Maven Central Repository, Bintray, and GitHub.
 
 If you are using Maven, add this dependency to your POM:
 
