@@ -2,6 +2,10 @@ openapi: "3.0.0"
 info:
   title: Flink REST API
   version: 1.7.0
+basePath: /v1
+tags:
+  - name: flink
+    description: Flink REST API
 components:
   schemas:
     DashboardConfiguration:
@@ -57,7 +61,7 @@ components:
         name:
           type: string
         uploaded:
-          type: integer
+          type: long
         entry:
           type: array
           items:
@@ -171,17 +175,17 @@ components:
           - SUSPENDED
           - RECONCILING
         start-time:
-          type: integer
+          type: long
         end-time:
-          type: integer
+          type: long
         duration:
-          type: integer
+          type: long
         now:
-          type: integer
+          type: long
         timestamps:
           type: object
           additionalProperties:
-            type: integer
+            type: long
         vertices:
           type: array
           items:
@@ -192,7 +196,33 @@ components:
           additionalProperties:
             type: integer
         plan:
+          type: object
+          $ref: '#/components/schemas/JobDetailsInfoJobPlan'
+    JobDetailsInfoJobPlan:
+      properties:
+        jid:
+          type: object
+        name:
           type: string
+        nodes:
+          type: array
+          items:
+            type: object
+            $ref: '#/components/schemas/JobDetailsInfoNode'
+    JobDetailsInfoNode:
+      properties:
+        id:
+          type: object
+        parallelism:
+          type: integer
+        operator:
+          type: string
+        operator_strategy:
+          type: string
+        description:
+          type: string
+        optimizer_properties:
+          type: object
     JobDetailsInfoJobVertexDetailsInfo:
       properties:
         id:
@@ -214,11 +244,11 @@ components:
           - FAILED
           - RECONCILING
         start-time:
-          type: integer
+          type: long
         end-time:
-          type: integer
+          type: long
         duration:
-          type: integer
+          type: long
         tasks:
           type: object
           additionalProperties:
@@ -229,19 +259,19 @@ components:
     IOMetricsInfo:
       properties:
         read-bytes:
-          type: integer
+          type: long
         read-bytes-complete:
           type: boolean
         write-bytes:
-          type: integer
+          type: long
         write-bytes-complete:
           type: boolean
         read-records:
-          type: integer
+          type: long
         read-records-complete:
           type: boolean
         write-records:
-          type: integer
+          type: long
         write-records-complete:
           type: boolean
     JobAccumulatorsInfo:
@@ -286,15 +316,15 @@ components:
     CheckpointingStatisticsCounts:
       properties:
         restored:
-          type: integer
+          type: long
         total:
-          type: integer
+          type: long
         in_progress:
-          type: integer
+          type: long
         completed:
-          type: integer
+          type: long
         failed:
-          type: integer
+          type: long
     CheckpointingStatisticsSummary:
       properties:
         state_size:
@@ -309,11 +339,11 @@ components:
     MinMaxAvgStatistics:
       properties:
         min:
-          type: integer
+          type: long
         max:
-          type: integer
+          type: long
         avg:
-          type: integer
+          type: long
     CheckpointingStatisticsLatestCheckpoints:
       properties:
         completed:
@@ -341,15 +371,15 @@ components:
         is_savepoint:
           type: boolean
         trigger_timestamp:
-          type: integer
+          type: long
         latest_ack_timestamp:
-          type: integer
+          type: long
         state_size:
-          type: integer
+          type: long
         end_to_end_duration:
-          type: integer
+          type: long
         alignment_buffered:
-          type: integer
+          type: long
         num_subtasks:
           type: integer
         num_acknowledged_subtasks:
@@ -374,13 +404,13 @@ components:
           - COMPLETED
           - FAILED
         latest_ack_timestamp:
-          type: integer
+          type: long
         state_size:
-          type: integer
+          type: long
         end_to_end_duration:
-          type: integer
+          type: long
         alignment_buffered:
-          type: integer
+          type: long
         num_subtasks:
           type: integer
         num_acknowledged_subtasks:
@@ -398,15 +428,15 @@ components:
         is_savepoint:
           type: boolean
         trigger_timestamp:
-          type: integer
+          type: long
         latest_ack_timestamp:
-          type: integer
+          type: long
         state_size:
-          type: integer
+          type: long
         end_to_end_duration:
-          type: integer
+          type: long
         alignment_buffered:
-          type: integer
+          type: long
         num_subtasks:
           type: integer
         num_acknowledged_subtasks:
@@ -417,7 +447,7 @@ components:
             type: object
             $ref: '#/components/schemas/TaskCheckpointStatistics'
         failure_timestamp:
-          type: integer
+          type: long
         failure_message:
           type: string
     RestoredCheckpointStatistics:
@@ -425,7 +455,7 @@ components:
         id:
           type: integer
         restore_timestamp:
-          type: integer
+          type: long
         is_savepoint:
           type: boolean
         external_path:
@@ -443,15 +473,15 @@ components:
         is_savepoint:
           type: boolean
         trigger_timestamp:
-          type: integer
+          type: long
         latest_ack_timestamp:
-          type: integer
+          type: long
         state_size:
-          type: integer
+          type: long
         end_to_end_duration:
-          type: integer
+          type: long
         alignment_buffered:
-          type: integer
+          type: long
         num_subtasks:
           type: integer
         num_acknowledged_subtasks:
@@ -466,11 +496,11 @@ components:
         mode:
           type: object
         interval:
-          type: integer
+          type: long
         timeout:
-          type: integer
+          type: long
         min_pause:
-          type: integer
+          type: long
         max_concurrent:
           type: integer
         externalization:
@@ -493,13 +523,13 @@ components:
           - COMPLETED
           - FAILED
         latest_ack_timestamp:
-          type: integer
+          type: long
         state_size:
-          type: integer
+          type: long
         end_to_end_duration:
-          type: integer
+          type: long
         alignment_buffered:
-          type: integer
+          type: long
         num_subtasks:
           type: integer
         num_acknowledged_subtasks:
@@ -553,7 +583,7 @@ components:
         root-exception:
           type: string
         timestamp:
-          type: integer
+          type: long
         all-exceptions:
           type: array
           items:
@@ -570,7 +600,7 @@ components:
         location:
           type: string
         timestamp:
-          type: integer
+          type: long
     JobExecutionResultResponseBody:
       properties:
         status:
@@ -617,7 +647,7 @@ components:
           parallelism:
             type: integer
           now:
-            type: integer
+            type: long
           subtasks:
             type: array
             items:
@@ -644,11 +674,11 @@ components:
           host:
             type: string
           start_time:
-            type: integer
+            type: long
           end-time:
-            type: integer
+            type: long
           duration:
-            type: integer
+            type: long
           metrics:
             type: object
             $ref: '#/components/schemas/IOMetricsInfo'
@@ -683,7 +713,7 @@ components:
           - low
           - high
         end-timestamp:
-          type: integer
+          type: long
         subtasks:
           type: array
           items:
@@ -746,11 +776,11 @@ components:
         host:
           type: string
         start-time:
-          type: integer
+          type: long
         end-time:
-          type: integer
+          type: long
         duration:
-          type: integer
+          type: long
         metrics:
           type: object
           $ref: '#/components/schemas/IOMetricsInfo'
@@ -774,7 +804,7 @@ components:
         name:
           type: string
         now:
-          type: integer
+          type: long
         subtasks:
           type: array
           items:
@@ -787,11 +817,11 @@ components:
         host:
           type: string
         duration:
-          type: integer
+          type: long
         timestamps:
           type: object
           additionalProperties:
-            type: integer
+            type: long
     JobVertexTaskManagersInfo:
       properties:
         id:
@@ -799,7 +829,7 @@ components:
         name:
           type: string
         now:
-          type: integer
+          type: long
         taskmanagers:
           type: array
           items:
@@ -822,11 +852,11 @@ components:
           - FAILED
           - RECONCILING
         start-time:
-          type: integer
+          type: long
         end-time:
-          type: integer
+          type: long
         duration:
-          type: integer
+          type: long
         metrics:
           type: object
           $ref: '#/components/schemas/IOMetricsInfo'
@@ -887,11 +917,11 @@ components:
         cpuCores:
           type: integer
         physicalMemory:
-          type: integer
+          type: long
         freeMemory:
-          type: integer
+          type: long
         managedMemory:
-          type: integer
+          type: long
     TaskManagerDetailsInfo:
       properties:
         id:
@@ -915,33 +945,33 @@ components:
     TaskManagerMetricsInfo:
       properties:
         heapUsed:
-          type: integer
+          type: long
         heapCommitted:
-          type: integer
+          type: long
         heapMax:
-          type: integer
+          type: long
         nonHeapUsed:
-          type: integer
+          type: long
         nonHeapCommitted:
-          type: integer
+          type: long
         nonHeapMax:
-          type: integer
+          type: long
         directCount:
-          type: integer
+          type: long
         directUsed:
-          type: integer
+          type: long
         directMax:
-          type: integer
+          type: long
         mappedCount:
-          type: integer
+          type: long
         mappedUsed:
-          type: integer
+          type: long
         mappedMax:
-          type: integer
+          type: long
         memorySegmentsAvailable:
-          type: integer
+          type: long
         memorySegmentsTotal:
-          type: integer
+          type: long
         garbageCollectors:
           type: array
           items:
@@ -954,18 +984,22 @@ components:
         count:
           type: integer
         time:
-          type: integer
+          type: long
 paths:
-  /v1/cluster:
+  /cluster:
     delete:
+      tags:
+        - flink
       operationId: shutdownCluster
       summary: Shuts-down the cluster
       responses:
         '200':
           description: |-
             200 response
-  /v1/config:
+  /config:
     get:
+      tags:
+        - flink
       operationId: showConfig
       summary: Returns the configuration of the WebUI
       responses:
@@ -976,8 +1010,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DashboardConfiguration'
-  /v1/jars:
+  /jars:
     get:
+      tags:
+        - flink
       operationId: listJars
       summary: Returns a list of all jars previously uploaded via '/jars/upload'
       responses:
@@ -988,8 +1024,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/JarListInfo'
-  /v1/jars/upload:
+  /jars/upload:
     post:
+      tags:
+        - flink
       operationId: uploadJar
       summary: Uploads a jar to the cluster
       requestBody:
@@ -1013,8 +1051,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/JarUploadResponseBody'
-  /v1/jars/{jarid}:
+  /jars/{jarid}:
     delete:
+      tags:
+        - flink
       operationId: deleteJar
       summary: Deletes a jar previously uploaded via '/jars/upload'
       parameters:
@@ -1028,8 +1068,10 @@ paths:
         '200':
           description: |-
             200 response
-  /v1/jars/{jarid}/plan:
+  /jars/{jarid}/plan:
     get:
+      tags:
+        - flink
       operationId: showPlan
       summary: Returns the dataflow plan of a job contained in a jar previously uploaded via '/jars/upload'. Program arguments can be passed both via the JSON request (recommended) or query parameters
       parameters:
@@ -1063,6 +1105,12 @@ paths:
           required: false
           schema:
             type: integer
+#      requestBody:
+#        required: false
+#        content:
+#          application/json:
+#            schema:
+#              $ref: '#/components/schemas/JarPlanRequestBody'
       responses:
         '200':
           description: |-
@@ -1071,8 +1119,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/JobPlanInfo'
-  /v1/jars/{jarid}/run:
+  /jars/{jarid}/run:
     post:
+      tags:
+        - flink
       operationId: runJar
       summary: Submits a job by running a jar previously uploaded via '/jars/upload'. Program arguments can be passed both via the JSON request (recommended) or query parameters
       parameters:
@@ -1126,8 +1176,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/JarRunResponseBody'
-  /v1/jobmanager/config:
+  /jobmanager/config:
     get:
+      tags:
+        - flink
       operationId: showJobManagerConfig
       summary: Returns the cluster configuration
       responses:
@@ -1140,8 +1192,10 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/ClusterConfigurationInfoEntry'
-  /v1/jobmanager/metrics:
+  /jobmanager/metrics:
     get:
+      tags:
+        - flink
       operationId: getJobManagerMetrics
       summary: Provides access to job manager metrics
       parameters:
@@ -1159,8 +1213,10 @@ paths:
             application/json:
               schema:
                 type: object
-  /v1/jobs:
+  /jobs:
     get:
+      tags:
+        - flink
       operationId: getJobs
       summary: Returns an overview over all jobs and their current state
       responses:
@@ -1172,6 +1228,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/JobIdsWithStatusOverview'
     post:
+      tags:
+        - flink
       operationId: submitJob
       summary: Submits a job. This call is primarily intended to be used by the Flink client. This call expects a multipart/form-data request that consists of file uploads for the serialized JobGraph, jars and distributed cache artifacts and an attribute named "request" for the JSON payload
       requestBody:
@@ -1207,8 +1265,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/JobSubmitResponseBody'
-  /v1/jobs/metrics:
+  /jobs/metrics:
     get:
+      tags:
+        - flink
       operationId: getJobsMetrics
       summary: Provides access to aggregated job metrics
       parameters:
@@ -1238,8 +1298,10 @@ paths:
             application/json:
               schema:
                 type: object
-  /v1/jobs/overview:
+  /jobs/overview:
     get:
+      tags:
+        - flink
       operationId: getJobsOverview
       summary: Returns an overview over all jobs
       responses:
@@ -1250,8 +1312,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MultipleJobsDetails'
-  /v1/jobs/{jobid}:
+  /jobs/{jobid}:
     get:
+      tags:
+        - flink
       operationId: getJobDetails
       summary: Returns details of a job
       parameters:
@@ -1270,6 +1334,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/JobDetailsInfo'
     patch:
+      tags:
+        - flink
       operationId: terminateJob
       summary: Terminates a job
       parameters:
@@ -1289,8 +1355,10 @@ paths:
         '202':
           description: |-
             202 response
-  /v1/jobs/{jobid}/accumulators:
+  /jobs/{jobid}/accumulators:
     get:
+      tags:
+        - flink
       operationId: getJobAccumulators
       summary: Returns the accumulators for all tasks of a job, aggregated across the respective subtasks
       parameters:
@@ -1314,8 +1382,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/JobAccumulatorsInfo'
-  /v1/jobs/{jobid}/checkpoints:
+  /jobs/{jobid}/checkpoints:
     get:
+      tags:
+        - flink
       operationId: getJobCheckpoints
       summary: Returns checkpointing statistics for a job
       parameters:
@@ -1333,8 +1403,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/CheckpointingStatistics'
-  /v1/jobs/{jobid}/checkpoints/config:
+  /jobs/{jobid}/checkpoints/config:
     get:
+      tags:
+        - flink
       operationId: getJobCheckpointsConfig
       summary: Returns the checkpointing configuration
       parameters:
@@ -1352,8 +1424,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/CheckpointConfigInfo'
-  /v1/jobs/{jobid}/checkpoints/details/{checkpointid}:
+  /jobs/{jobid}/checkpoints/details/{checkpointid}:
     get:
+      tags:
+        - flink
       operationId: getJobCheckpointDetails
       summary: Returns details for a checkpoint
       parameters:
@@ -1377,8 +1451,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/CheckpointStatistics'
-  /v1/jobs/{jobid}/checkpoints/details/{checkpointid}/subtasks/{vertexid}:
+  /jobs/{jobid}/checkpoints/details/{checkpointid}/subtasks/{vertexid}:
     get:
+      tags:
+        - flink
       operationId: getJobCheckpointStatistics
       summary: Returns checkpoint statistics for a task and its subtasks
       parameters:
@@ -1408,8 +1484,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/TaskCheckpointStatisticsWithSubtaskDetails'
-  /v1/jobs/{jobid}/config:
+  /jobs/{jobid}/config:
     get:
+      tags:
+        - flink
       operationId: getJobConfig
       summary: Returns the configuration of a job
       parameters:
@@ -1427,8 +1505,10 @@ paths:
             application/json:
               schema:
                 type: string
-  /v1/jobs/{jobid}/exceptions:
+  /jobs/{jobid}/exceptions:
     get:
+      tags:
+        - flink
       operationId: getJobExceptions
       summary: Returns the non-recoverable exceptions that have been observed by the job. The truncated flag defines whether more exceptions occurred, but are not listed, because the response would otherwise get too big
       parameters:
@@ -1446,8 +1526,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/JobExceptionsInfo'
-  /v1/jobs/{jobid}/execution-result:
+  /jobs/{jobid}/execution-result:
     get:
+      tags:
+        - flink
       operationId: getJobResult
       summary: Returns the result of a job execution. Gives access to the execution time of the job and to all accumulators created by this job
       parameters:
@@ -1465,8 +1547,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/JobExecutionResultResponseBody'
-  /v1/jobs/{jobid}/metrics:
+  /jobs/{jobid}/metrics:
     get:
+      tags:
+        - flink
       operationId: getJobMetrics
       summary: Provides access to job metrics
       parameters:
@@ -1490,8 +1574,10 @@ paths:
             application/json:
               schema:
                 type: object
-  /v1/jobs/{jobid}/plan:
+  /jobs/{jobid}/plan:
     get:
+      tags:
+        - flink
       operationId: getJobPlan
       summary: Returns the dataflow plan of a job
       parameters:
@@ -1509,8 +1595,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/JobPlanInfo'
-  /v1/jobs/{jobid}/rescaling:
+  /jobs/{jobid}/rescaling:
     patch:
+      tags:
+        - flink
       operationId: triggerJobRescaling
       summary: Triggers the rescaling of a job
       parameters:
@@ -1534,8 +1622,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/TriggerResponse'
-  /v1/jobs/{jobid}/rescaling/{triggerid}:
+  /jobs/{jobid}/rescaling/{triggerid}:
     get:
+      tags:
+        - flink
       operationId: getJobRescalingStatus
       summary: Returns the status of a rescaling operation
       parameters:
@@ -1559,8 +1649,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AsynchronousOperationResult'
-  /v1/jobs/{jobid}/savepoints:
+  /jobs/{jobid}/savepoints:
     post:
+      tags:
+        - flink
       operationId: createJobSavepoint
       summary: Triggers a savepoint, and optionally cancels the job afterwards
       parameters:
@@ -1584,8 +1676,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/TriggerResponse'
-  /v1/jobs/{jobid}/savepoints/{triggerid}:
+  /jobs/{jobid}/savepoints/{triggerid}:
     get:
+      tags:
+        - flink
       operationId: getJobSavepointStatus
       summary: Returns the status of a savepoint operation
       parameters:
@@ -1609,8 +1703,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AsynchronousOperationResult'
-  /v1/jobs/{jobid}/vertices/{vertexid}:
+  /jobs/{jobid}/vertices/{vertexid}:
     get:
+      tags:
+        - flink
       operationId: getJobTaskDetails
       summary: Returns details for a task, with a summary for each of its subtasks
       parameters:
@@ -1634,8 +1730,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/JobVertexDetailsInfo'
-  /v1/jobs/{jobid}/vertices/{vertexid}/accumulators:
+  /jobs/{jobid}/vertices/{vertexid}/accumulators:
     get:
+      tags:
+        - flink
       operationId: getJobTaskAccumulators
       summary: Returns user-defined accumulators of a task, aggregated across all subtasks
       parameters:
@@ -1659,8 +1757,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/JobVertexAccumulatorsInfo'
-  /v1/jobs/{jobid}/vertices/{vertexid}/backpressure:
+  /jobs/{jobid}/vertices/{vertexid}/backpressure:
     get:
+      tags:
+        - flink
       operationId: getJobTaskBackpressure
       summary: Returns back-pressure information for a job, and may initiate back-pressure sampling if necessary
       parameters:
@@ -1684,8 +1784,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/JobVertexBackPressureInfo'
-  /v1/jobs/{jobid}/vertices/{vertexid}/metrics:
+  /jobs/{jobid}/vertices/{vertexid}/metrics:
     get:
+      tags:
+        - flink
       operationId: getJobTaskMetrics
       summary: Provides access to task metrics
       parameters:
@@ -1715,8 +1817,10 @@ paths:
             application/json:
               schema:
                 type: object
-  /v1/jobs/{jobid}/vertices/{vertexid}/subtasks/accumulators:
+  /jobs/{jobid}/vertices/{vertexid}/subtasks/accumulators:
     get:
+      tags:
+        - flink
       operationId: getJobSubtaskAccumulators
       summary: Returns all user-defined accumulators for all subtasks of a task
       parameters:
@@ -1740,8 +1844,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SubtasksAllAccumulatorsInfo'
-  /v1/jobs/{jobid}/vertices/{vertexid}/subtasks/metrics:
+  /jobs/{jobid}/vertices/{vertexid}/subtasks/metrics:
     get:
+      tags:
+        - flink
       operationId: getJobAggregatedSubtaskMetrics
       summary: Provides access to aggregated subtask metrics
       parameters:
@@ -1783,8 +1889,10 @@ paths:
             application/json:
               schema:
                 type: object
-  /v1/jobs/{jobid}/vertices/{vertexid}/subtasks/{subtaskindex}:
+  /jobs/{jobid}/vertices/{vertexid}/subtasks/{subtaskindex}:
     get:
+      tags:
+        - flink
       operationId: getJobSubtaskDetails
       summary: Returns details of the current or latest execution attempt of a subtask
       parameters:
@@ -1814,8 +1922,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SubtaskExecutionAttemptDetailsInfo'
-  /v1/jobs/{jobid}/vertices/{vertexid}/subtasks/{subtaskindex}/attempts/:attempt:
+  /jobs/{jobid}/vertices/{vertexid}/subtasks/{subtaskindex}/attempts/:attempt:
     get:
+      tags:
+        - flink
       operationId: getJobSubtaskAttemptDetails
       summary: Returns details of an execution attempt of a subtask. Multiple execution attempts happen in case of failure/recovery
       parameters:
@@ -1851,8 +1961,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SubtaskExecutionAttemptDetailsInfo'
-  /v1/jobs/{jobid}/vertices/{vertexid}/subtasks/{subtaskindex}/attempts/:attempt/accumulators:
+  /jobs/{jobid}/vertices/{vertexid}/subtasks/{subtaskindex}/attempts/:attempt/accumulators:
     get:
+      tags:
+        - flink
       operationId: getJobSubtaskAttemptAccumulators
       summary: Returns the accumulators of an execution attempt of a subtask. Multiple execution attempts happen in case of failure/recovery
       parameters:
@@ -1888,8 +2000,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SubtaskExecutionAttemptAccumulatorsInfo'
-  /v1/jobs/{jobid}/vertices/{vertexid}/subtasks/{subtaskindex}/metrics:
+  /jobs/{jobid}/vertices/{vertexid}/subtasks/{subtaskindex}/metrics:
     get:
+      tags:
+        - flink
       operationId: getJobSubtaskMetrics
       summary: Provides access to subtask metrics
       parameters:
@@ -1925,8 +2039,10 @@ paths:
             application/json:
               schema:
                 type: object
-  /v1/jobs/{jobid}/vertices/{vertexid}/subtasktimes:
+  /jobs/{jobid}/vertices/{vertexid}/subtasktimes:
     get:
+      tags:
+        - flink
       operationId: getJobSubtaskTimes
       summary: Returns time-related information for all subtasks of a task
       parameters:
@@ -1950,8 +2066,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SubtasksTimesInfo'
-  /v1/jobs/{jobid}/vertices/{vertexid}/taskmanagers:
+  /jobs/{jobid}/vertices/{vertexid}/taskmanagers:
     get:
+      tags:
+        - flink
       operationId: getJobTaskDetailsByTaskManager
       summary: Returns task information aggregated by task manager
       parameters:
@@ -1975,8 +2093,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/JobVertexTaskManagersInfo'
-  /v1/overview:
+  /overview:
     get:
+      tags:
+        - flink
       operationId: getOverview
       summary: Returns an overview over the Flink cluster
       responses:
@@ -1987,8 +2107,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ClusterOverviewWithVersion'
-  /v1/savepoint-disposal:
+  /savepoint-disposal:
     post:
+      tags:
+        - flink
       operationId: triggerSavepointDisposal
       summary: Triggers the desposal of a savepoint
       requestBody:
@@ -2005,8 +2127,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/TriggerResponse'
-  /v1/savepoint-disposal/{triggerid}:
+  /savepoint-disposal/{triggerid}:
     get:
+      tags:
+        - flink
       operationId: getSavepointDisposalStatus
       summary: Returns the status of a savepoint disposal operation
       parameters:
@@ -2024,8 +2148,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AsynchronousOperationResult'
-  /v1/taskmanagers:
+  /taskmanagers:
     get:
+      tags:
+        - flink
       operationId: getTaskManagersOverview
       summary: Returns an overview over all task managers
       responses:
@@ -2036,8 +2162,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/TaskManagersInfo'
-  /v1/taskmanagers/metrics:
+  /taskmanagers/metrics:
     get:
+      tags:
+        - flink
       operationId: getTaskManagerAggregatedMetrics
       summary: Provides access to aggregated task manager metrics
       parameters:
@@ -2067,8 +2195,10 @@ paths:
             application/json:
               schema:
                 type: object
-  /v1/taskmanagers/{taskmanagerid}:
+  /taskmanagers/{taskmanagerid}:
     get:
+      tags:
+        - flink
       operationId: getTaskManagerDetails
       summary: Returns details for a task manager
       parameters:
@@ -2086,8 +2216,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/TaskManagerDetailsInfo'
-  /v1/taskmanagers/{taskmanagerid}/metrics:
+  /taskmanagers/{taskmanagerid}/metrics:
     get:
+      tags:
+        - flink
       operationId: getTaskManagerMetrics
       summary: Provides access to task manager metrics
       parameters:
