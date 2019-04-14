@@ -1,7 +1,7 @@
 openapi: "3.0.0"
 info:
   title: Flink REST API
-  version: 1.7.0
+  version: 1.0.0-alpha
 basePath: /v1
 tags:
   - name: flink
