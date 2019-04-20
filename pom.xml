@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.nextbreakpoint</groupId>
     <artifactId>com.nextbreakpoint.flinkclient</artifactId>
-    <version>1.0.0-alpha</version>
+    <version>1.0.1-alpha</version>
     <packaging>jar</packaging>
     <description>Java client for managing and monitoring Apache Flink via the Monitoring REST API</description>
     <name>com.nextbreakpoint.flinkclient</name>

@@ -904,7 +904,7 @@ components:
         dataPort:
           type: integer
         timeSinceLastHeartbeat:
-          type: integer
+          type: long
         slotsNumber:
           type: integer
         freeSlots:
@@ -931,7 +931,7 @@ components:
         dataPort:
           type: integer
         timeSinceLastHeartbeat:
-          type: integer
+          type: long
         slotsNumber:
           type: integer
         freeSlots:
