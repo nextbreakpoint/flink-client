@@ -135,7 +135,6 @@ public class FlinkClientIT {
                 try {
                     api.terminateJob(jobIdWithStatus.getId(), "cancel");
                 } catch (ApiException e) {
-                    e.printStackTrace();
                 }
             });
         }
