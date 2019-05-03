@@ -108,7 +108,7 @@ Terminate a job:
 
     api.terminateJob("f370f5421e5254eed8d6fc6673829c83", "cancel");
 
-For all the remaining operations see documentation of Monitoring REST API or see OpenAPI file (flink-openapi.yaml).
+For all the remaining operations see documentation of Monitoring REST API or see [OpenAPI specification file](https://github.com/nextbreakpoint/flink-client/blob/master/flink-openapi.yaml).
 
 ## Known limitations
 
