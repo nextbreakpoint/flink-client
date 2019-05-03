@@ -48,17 +48,20 @@ public class FlinkClientIT {
     private class TestCallback<T> implements ApiCallback<T> {
         volatile ApiException exception;
         volatile T result;
+        volatile boolean completed;
 
         @Override
         public void onFailure(ApiException e, int statusCode, Map<String, List<String>> responseHeaders) {
             e.printStackTrace();
             this.exception = e;
+            completed = true;
         }
 
         @Override
         public void onSuccess(T result, int statusCode, Map<String, List<String>> responseHeaders) {
             dumpAsJson(result);
             this.result = result;
+            completed = true;
         }
 
         @Override
@@ -71,25 +74,55 @@ public class FlinkClientIT {
     }
 
     private void runTestJar() throws ApiException {
-        File jarFile = new File(JAR_PATH);
-        JarUploadResponseBody result = api.uploadJar(jarFile);
+        final JarUploadResponseBody result = api.uploadJar(new File(JAR_PATH));
         assertThat(result).isNotNull();
         dumpAsJson(result);
-        JarListInfo jarListInfo = api.listJars();
+        final JarListInfo jarListInfo = api.listJars();
         assertThat(jarListInfo).isNotNull();
         dumpAsJson(jarListInfo);
-        JarRunResponseBody response = api.runJar(jarListInfo.getFiles().get(0).getId(), true, null, "--BUCKET_BASE_PATH file:///var/tmp", null, "com.nextbreakpoint.flink.jobs.TestJob", null);
+        final JarRunResponseBody response = api.runJar(jarListInfo.getFiles().get(0).getId(), true, null, "--BUCKET_BASE_PATH file:///var/tmp", null, "com.nextbreakpoint.flink.jobs.TestJob", null);
         assertThat(response).isNotNull();
         dumpAsJson(response);
     }
 
     private void terminateAllJobs() throws ApiException {
-        JobIdsWithStatusOverview statusOverview = api.getJobs();
+        final JobIdsWithStatusOverview statusOverview = api.getJobs();
         assertThat(statusOverview).isNotNull();
         dumpAsJson(statusOverview);
         statusOverview.getJobs().forEach(jobIdWithStatus -> {
             try {
                 api.terminateJob(jobIdWithStatus.getId(), "cancel");
+            } catch (ApiException ignored) {
+            }
+        });
+    }
+
+    private void runTestJarAsync() throws ApiException {
+        final JarUploadResponseBody result = api.uploadJar(new File(JAR_PATH));
+        assertThat(result).isNotNull();
+        dumpAsJson(result);
+        final JarListInfo jarListInfo = api.listJars();
+        assertThat(jarListInfo).isNotNull();
+        dumpAsJson(jarListInfo);
+        final TestCallback<JarRunResponseBody> callback = new TestCallback<>();
+        api.runJarAsync(jarListInfo.getFiles().get(0).getId(), true, null, "--BUCKET_BASE_PATH file:///var/tmp", null, "com.nextbreakpoint.flink.jobs.TestJob", null, callback);
+        await(() -> {
+            assertThat(callback.result).isNotNull();
+            assertThat(callback.completed).isTrue();
+        });
+    }
+
+    private void terminateAllJobsAsync() throws ApiException {
+        final JobIdsWithStatusOverview statusOverview = api.getJobs();
+        assertThat(statusOverview).isNotNull();
+        dumpAsJson(statusOverview);
+        statusOverview.getJobs().forEach(jobIdWithStatus -> {
+            try {
+                final TestCallback<Void> callback = new TestCallback<>();
+                api.terminateJobAsync(jobIdWithStatus.getId(), "cancel", callback);
+                await(() -> {
+                    assertThat(callback.completed).isTrue();
+                });
             } catch (ApiException ignored) {
             }
         });
@@ -160,6 +193,10 @@ public class FlinkClientIT {
         assertThat(jobIdsWithStatusOverview.getJobs().size() > 0).isTrue();
     }
 
+    private void verifyClusterOverviewWithVersion(ClusterOverviewWithVersion clusterOverviewWithVersion) {
+        assertThat(clusterOverviewWithVersion.getFlinkVersion()).isEqualTo("1.7.2");
+    }
+
     @BeforeEach
     void setup() {
         api = new FlinkApi();
@@ -198,7 +235,18 @@ public class FlinkClientIT {
     }
 
     @Nested
-    class Shutdown {
+    class Cluster {
+        @Test
+        void shouldReturnOverview() throws ApiException {
+            // when
+            final ClusterOverviewWithVersion clusterOverviewWithVersion = api.getOverview();
+
+            // then
+            assertThat(clusterOverviewWithVersion).isNotNull();
+            dumpAsJson(clusterOverviewWithVersion);
+            verifyClusterOverviewWithVersion(clusterOverviewWithVersion);
+        }
+
         @Test
         void shouldShutdownCluster() throws ApiException {
 //            api.shutdownCluster();
@@ -206,7 +254,22 @@ public class FlinkClientIT {
     }
 
     @Nested
-    class ShutdownAsync {
+    class ClusterAsync {
+        @Test
+        void shouldReturnOverview() throws ApiException {
+            // given
+            final TestCallback<ClusterOverviewWithVersion> callback = new TestCallback<>();
+
+            // when
+            api.getOverviewAsync(callback);
+
+            // then
+            await(() -> {
+                assertThat(callback.result).isNotNull();
+                verifyClusterOverviewWithVersion(callback.result);
+            });
+        }
+
         @Test
         void shouldShutdownCluster() {
 //            final TestCallback<Void> callback = new TestCallback<>();
@@ -264,6 +327,22 @@ public class FlinkClientIT {
             final JarListInfo jarListInfo = api.listJars();
             dumpAsJson(jarListInfo);
             verifyJarDeleted(jarListInfo, jarFileInfo.getId());
+        }
+
+        @Test
+        void shouldReturnPlan() throws ApiException {
+            // given
+            final JarUploadResponseBody jarUploadResponseBody = api.uploadJar(new File(JAR_PATH));
+            dumpAsJson(jarUploadResponseBody);
+            final JarFileInfo jarFileInfo = api.listJars().getFiles().get(0);
+
+            // when
+            final JobPlanInfo jobPlanInfo = api.showPlan(jarFileInfo.getId(), "--BUCKET_BASE_PATH file:///var/tmp", null, "com.nextbreakpoint.flink.jobs.TestJob", 1);
+
+            // then
+            assertThat(jobPlanInfo).isNotNull();
+            dumpAsJson(jobPlanInfo);
+            assertThat(jobPlanInfo.getPlan()).isNotNull();
         }
     }
 
@@ -329,6 +408,24 @@ public class FlinkClientIT {
                 final JarListInfo jarListInfo = api.listJars();
                 dumpAsJson(jarListInfo);
                 verifyJarDeleted(jarListInfo, jarFileInfo.getId());
+            });
+        }
+
+        @Test
+        void shouldReturnPlan() throws ApiException {
+            // given
+            final TestCallback<JobPlanInfo> callback = new TestCallback<>();
+            final JarUploadResponseBody jarUploadResponseBody = api.uploadJar(new File(JAR_PATH));
+            dumpAsJson(jarUploadResponseBody);
+            final JarFileInfo jarFileInfo = api.listJars().getFiles().get(0);
+
+            // when
+            api.showPlanAsync(jarFileInfo.getId(), "--BUCKET_BASE_PATH file:///var/tmp", null, "com.nextbreakpoint.flink.jobs.TestJob", 1, callback);
+
+            // then
+            await(() -> {
+                assertThat(callback.result).isNotNull();
+                assertThat(callback.result.getPlan()).isNotNull();
             });
         }
     }
@@ -457,7 +554,7 @@ public class FlinkClientIT {
             final String vertexid = jobDetailsInfo.getVertices().get(0).getId().toString();
 
             // when
-            final Object jobTaskMetrics = api.getJobTaskMetrics(jobId, vertexid, "");/*TODO*/
+            final Object jobTaskMetrics = api.getJobTaskMetrics(jobId, vertexid, "numRecordsIn");/*TODO*/
 
             // then
             assertThat(jobTaskMetrics).isNotNull();
@@ -518,14 +615,14 @@ public class FlinkClientIT {
                     });
 
             // when
-            final Object jobSubtaskMetrics = api.getJobSubtaskMetrics(jobId, vertexId, 0, "");/*TODO*/
+            final Object jobSubtaskMetrics = api.getJobSubtaskMetrics(jobId, vertexId, 0, "numRecordsIn");/*TODO*/
 
             // then
             assertThat(jobSubtaskMetrics).isNotNull();
             dumpAsJson(jobSubtaskMetrics);
 
             // when
-            final Object jobAggregatedSubtaskMetrics = api.getJobAggregatedSubtaskMetrics(jobId, vertexId, "", "sum", null);/*TODO*/
+            final Object jobAggregatedSubtaskMetrics = api.getJobAggregatedSubtaskMetrics(jobId, vertexId, "numRecordsIn", "sum", null);/*TODO*/
 
             // then
             assertThat(jobAggregatedSubtaskMetrics).isNotNull();
@@ -584,6 +681,42 @@ public class FlinkClientIT {
                     .untilAsserted(() -> {
                         // when
                         final AsynchronousOperationResult asynchronousOperationResult = api.getJobSavepointStatus(jobId, triggerSavepointResponse.getRequestId().toString());
+
+                        // then
+                        assertThat(asynchronousOperationResult).isNotNull();
+                        dumpAsJson(asynchronousOperationResult);
+                        assertThat(asynchronousOperationResult.getStatus().getId()).isEqualTo(QueueStatus.IdEnum.COMPLETED);
+                    });
+
+            Awaitility.await()
+                    .pollInterval(1, TimeUnit.SECONDS)
+                    .pollDelay(5, TimeUnit.SECONDS)
+                    .atMost(30, TimeUnit.SECONDS)
+                    .untilAsserted(() -> {
+                        final CheckpointingStatistics checkpointingStatistics = api.getJobCheckpoints(jobId);
+                        assertThat(checkpointingStatistics.getLatest()).isNotNull();
+                        assertThat(checkpointingStatistics.getLatest().getSavepoint()).isNotNull();
+                    });
+
+            // given
+            final CheckpointingStatistics checkpointingStatistics = api.getJobCheckpoints(jobId);
+            final String savepointPath = checkpointingStatistics.getLatest().getSavepoint().getExternalPath();
+
+            // when
+            final TriggerResponse triggerSavepointDisposalResponse = api.triggerSavepointDisposal(new SavepointDisposalRequest().savepointPath(savepointPath));
+
+            // then
+            assertThat(triggerSavepointDisposalResponse).isNotNull();
+            dumpAsJson(triggerSavepointDisposalResponse);
+            assertThat(triggerSavepointDisposalResponse.getRequestId()).isNotNull();
+
+            Awaitility.await()
+                    .pollInterval(1, TimeUnit.SECONDS)
+                    .pollDelay(5, TimeUnit.SECONDS)
+                    .atMost(30, TimeUnit.SECONDS)
+                    .untilAsserted(() -> {
+                        // when
+                        final AsynchronousOperationResult asynchronousOperationResult = api.getSavepointDisposalStatus(triggerSavepointDisposalResponse.getRequestId().toString());
 
                         // then
                         assertThat(asynchronousOperationResult).isNotNull();
@@ -676,12 +809,12 @@ public class FlinkClientIT {
     class JobsAync {
         @BeforeEach
         void terminateJobs() throws ApiException {
-            terminateAllJobs();
+            terminateAllJobsAsync();
         }
 
         @BeforeEach
         void runJob() throws ApiException {
-            runTestJar();
+            runTestJarAsync();
         }
 
         @Test
@@ -840,7 +973,7 @@ public class FlinkClientIT {
             final TestCallback<Object> jobTaskMetricsCallback = new TestCallback<>();
 
             // when
-            api.getJobTaskMetricsAsync(jobId, vertexid, "", jobTaskMetricsCallback);/*TODO*/
+            api.getJobTaskMetricsAsync(jobId, vertexid, "numRecordsIn", jobTaskMetricsCallback);/*TODO*/
 
             // then
             await(() -> {
@@ -932,7 +1065,7 @@ public class FlinkClientIT {
             final TestCallback<Object> jobSubtaskMetricsCallback = new TestCallback<>();
 
             // when
-            api.getJobSubtaskMetricsAsync(jobId, vertexId, 0, "", jobSubtaskMetricsCallback);/*TODO*/
+            api.getJobSubtaskMetricsAsync(jobId, vertexId, 0, "numRecordsIn", jobSubtaskMetricsCallback);/*TODO*/
 
             // then
             await(() -> {
@@ -943,7 +1076,7 @@ public class FlinkClientIT {
             final TestCallback<Object> jobAggregatedSubtaskMetricsCallback = new TestCallback<>();
 
             // when
-            api.getJobAggregatedSubtaskMetricsAsync(jobId, vertexId, "", "sum", null, jobAggregatedSubtaskMetricsCallback);/*TODO*/
+            api.getJobAggregatedSubtaskMetricsAsync(jobId, vertexId, "numRecordsIn", "sum", null, jobAggregatedSubtaskMetricsCallback);/*TODO*/
 
             // then
             await(() -> {
@@ -974,29 +1107,29 @@ public class FlinkClientIT {
                 assertThat(subtasksAllAccumulatorsInfoCallback.result.getSubtasks()).hasSize(1);
             });
 
-            // given
-            final TestCallback<SubtaskExecutionAttemptAccumulatorsInfo> subtaskExecutionAttemptAccumulatorsInfoCallback = new TestCallback<>();
-
-            // when
-            api.getJobSubtaskAttemptAccumulatorsAsync(jobId, vertexId, 0, 0, subtaskExecutionAttemptAccumulatorsInfoCallback);
-
-            // then
-            await(() -> {
-                assertThat(subtaskExecutionAttemptAccumulatorsInfoCallback.result).isNotNull();
-                assertThat(subtaskExecutionAttemptAccumulatorsInfoCallback.result.getUserAccumulators()).isNotNull();
-            });
-
-            // given
-            final TestCallback<SubtaskExecutionAttemptDetailsInfo> subtaskExecutionAttemptDetailsInfoCallback = new TestCallback<>();
-
-            // when
-            api.getJobSubtaskAttemptDetailsAsync(jobId, vertexId, 0, 0, subtaskExecutionAttemptDetailsInfoCallback);
-
-            // then
-            await(() -> {
-                assertThat(subtaskExecutionAttemptDetailsInfoCallback.result).isNotNull();
-                assertThat(subtaskExecutionAttemptDetailsInfoCallback.result.getStatus()).isEqualTo(SubtaskExecutionAttemptDetailsInfo.StatusEnum.RUNNING);
-            });
+//            // given
+//            final TestCallback<SubtaskExecutionAttemptAccumulatorsInfo> subtaskExecutionAttemptAccumulatorsInfoCallback = new TestCallback<>();
+//
+//            // when
+//            api.getJobSubtaskAttemptAccumulatorsAsync(jobId, vertexId, 0, 0, subtaskExecutionAttemptAccumulatorsInfoCallback);
+//
+//            // then
+//            await(() -> {
+//                assertThat(subtaskExecutionAttemptAccumulatorsInfoCallback.result).isNotNull();
+//                assertThat(subtaskExecutionAttemptAccumulatorsInfoCallback.result.getUserAccumulators()).isNotNull();
+//            });
+//
+//            // given
+//            final TestCallback<SubtaskExecutionAttemptDetailsInfo> subtaskExecutionAttemptDetailsInfoCallback = new TestCallback<>();
+//
+//            // when
+//            api.getJobSubtaskAttemptDetailsAsync(jobId, vertexId, 0, 0, subtaskExecutionAttemptDetailsInfoCallback);
+//
+//            // then
+//            await(() -> {
+//                assertThat(subtaskExecutionAttemptDetailsInfoCallback.result).isNotNull();
+//                assertThat(subtaskExecutionAttemptDetailsInfoCallback.result.getStatus()).isEqualTo(SubtaskExecutionAttemptDetailsInfo.StatusEnum.RUNNING);
+//            });
         }
 
         @Test
@@ -1029,16 +1162,67 @@ public class FlinkClientIT {
                         assertThat(asynchronousOperationResult.getStatus().getId()).isEqualTo(QueueStatus.IdEnum.COMPLETED);
                     });
 
+            Awaitility.await()
+                    .pollInterval(1, TimeUnit.SECONDS)
+                    .pollDelay(5, TimeUnit.SECONDS)
+                    .atMost(30, TimeUnit.SECONDS)
+                    .untilAsserted(() -> {
+                        final CheckpointingStatistics checkpointingStatistics = api.getJobCheckpoints(jobId);
+                        assertThat(checkpointingStatistics.getLatest()).isNotNull();
+                        assertThat(checkpointingStatistics.getLatest().getSavepoint()).isNotNull();
+                    });
+
             // given
-            final TestCallback<AsynchronousOperationResult> asynchronousOperationResultCallback = new TestCallback<>();
+            final TestCallback<AsynchronousOperationResult> savepointAsynchronousOperationResultCallback = new TestCallback<>();
 
             // when
-            api.getJobSavepointStatusAsync(jobId, triggerSavepointResponseCallback.result.getRequestId().toString(), asynchronousOperationResultCallback);
+            api.getJobSavepointStatusAsync(jobId, triggerSavepointResponseCallback.result.getRequestId().toString(), savepointAsynchronousOperationResultCallback);
 
             // then
             await(() -> {
-                assertThat(asynchronousOperationResultCallback.result).isNotNull();
-                assertThat(asynchronousOperationResultCallback.result.getStatus().getId()).isEqualTo(QueueStatus.IdEnum.COMPLETED);
+                assertThat(savepointAsynchronousOperationResultCallback.result).isNotNull();
+                assertThat(savepointAsynchronousOperationResultCallback.result.getStatus().getId()).isEqualTo(QueueStatus.IdEnum.COMPLETED);
+            });
+
+            // given
+            final CheckpointingStatistics checkpointingStatistics = api.getJobCheckpoints(jobId);
+            final String savepointPath = checkpointingStatistics.getLatest().getSavepoint().getExternalPath();
+
+            final TestCallback<TriggerResponse> triggerSavepointDisposalResponseCallback = new TestCallback<>();
+
+            // when
+            api.triggerSavepointDisposalAsync(new SavepointDisposalRequest().savepointPath(savepointPath), triggerSavepointDisposalResponseCallback);
+
+            // then
+            await(() -> {
+                assertThat(triggerSavepointDisposalResponseCallback.result).isNotNull();
+                assertThat(triggerSavepointDisposalResponseCallback.result.getRequestId()).isNotNull();
+            });
+
+            Awaitility.await()
+                    .pollInterval(1, TimeUnit.SECONDS)
+                    .pollDelay(5, TimeUnit.SECONDS)
+                    .atMost(30, TimeUnit.SECONDS)
+                    .untilAsserted(() -> {
+                        // when
+                        final AsynchronousOperationResult asynchronousOperationResult = api.getSavepointDisposalStatus(triggerSavepointDisposalResponseCallback.result.getRequestId().toString());
+
+                        // then
+                        assertThat(asynchronousOperationResult).isNotNull();
+                        dumpAsJson(asynchronousOperationResult);
+                        assertThat(asynchronousOperationResult.getStatus().getId()).isEqualTo(QueueStatus.IdEnum.COMPLETED);
+                    });
+
+            // given
+            final TestCallback<AsynchronousOperationResult> savepointDisposalAsynchronousOperationResultCallback = new TestCallback<>();
+
+            // when
+            api.getSavepointDisposalStatusAsync(triggerSavepointDisposalResponseCallback.result.getRequestId().toString(), savepointDisposalAsynchronousOperationResultCallback);
+
+            // then
+            await(() -> {
+                assertThat(savepointDisposalAsynchronousOperationResultCallback.result).isNotNull();
+                assertThat(savepointDisposalAsynchronousOperationResultCallback.result.getStatus().getId()).isEqualTo(QueueStatus.IdEnum.COMPLETED);
             });
         }
 
@@ -1170,6 +1354,17 @@ public class FlinkClientIT {
             assertThat(metrics).isNotNull();
             dumpAsJson(metrics);
         }
+
+        @Test
+        void shouldReturnConfig() throws ApiException {
+            // when
+            final List<ClusterConfigurationInfoEntry> jobManagerConfig = api.showJobManagerConfig();
+
+            // then
+            assertThat(jobManagerConfig).isNotNull();
+            dumpAsJson(jobManagerConfig);
+            assertThat(jobManagerConfig.size() > 0).isTrue();
+        }
     }
 
     @Nested
@@ -1185,6 +1380,21 @@ public class FlinkClientIT {
             // then
             await(() -> {
                 assertThat(metricsCallback.result).isNotNull();
+            });
+        }
+
+        @Test
+        void shouldReturnConfig() throws ApiException {
+            // given
+            final TestCallback<List<ClusterConfigurationInfoEntry>> jobManagerConfigCallback = new TestCallback<>();
+
+            // when
+            api.showJobManagerConfigAsync(jobManagerConfigCallback);
+
+            // then
+            await(() -> {
+                assertThat(jobManagerConfigCallback.result).isNotNull();
+                assertThat(jobManagerConfigCallback.result.size() > 0).isTrue();
             });
         }
     }
