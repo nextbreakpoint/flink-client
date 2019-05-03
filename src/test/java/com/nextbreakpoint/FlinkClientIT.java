@@ -46,13 +46,13 @@ public class FlinkClientIT {
     }
 
     private class TestCallback<T> implements ApiCallback<T> {
-        volatile ApiException e;
+        volatile ApiException exception;
         volatile T result;
 
         @Override
         public void onFailure(ApiException e, int statusCode, Map<String, List<String>> responseHeaders) {
             e.printStackTrace();
-            this.e = e;
+            this.exception = e;
         }
 
         @Override
@@ -68,33 +68,6 @@ public class FlinkClientIT {
         @Override
         public void onDownloadProgress(long bytesRead, long contentLength, boolean done) {
         }
-    }
-
-    private void verifyDashboardConfiguration(DashboardConfiguration config) {
-        assertThat(config.getRefreshInterval()).isEqualTo(3000);
-        assertThat(config.getTimezoneName()).isNotBlank();
-        assertThat(config.getTimezoneOffset()).isNotNull();
-        assertThat(config.getFlinkVersion()).isEqualTo("1.7.2");
-        assertThat(config.getFlinkRevision()).isEqualTo("ceba8af @ 11.02.2019 @ 14:17:09 UTC");
-    }
-
-    private void verifyJarUploadResponseBody(JarUploadResponseBody result) {
-        assertThat(result.getStatus()).isEqualTo(JarUploadResponseBody.StatusEnum.SUCCESS);
-        assertThat(result.getFilename()).endsWith("_" + JAR_NAME);
-        assertThat(result.getFilename()).contains("/flink-web-upload");
-    }
-
-    private void verifyJarListInfo(JarUploadResponseBody result, JarListInfo jarListInfo) {
-        assertThat(jarListInfo.getFiles().size() > 0).isTrue();
-        IntStream.range(0, jarListInfo.getFiles().size()).forEach((index) -> {
-            assertThat(jarListInfo.getFiles().get(index).getId()).endsWith("_" + JAR_NAME);
-            assertThat(jarListInfo.getFiles().get(index).getName()).isEqualTo(JAR_NAME);
-        });
-        assertThat(jarListInfo.getFiles().stream().anyMatch(file -> result.getFilename().endsWith("/" + file.getId()))).isTrue();
-    }
-
-    private void verifyJarDeleted(JarListInfo jarListInfo, String fileInfoId) {
-        assertThat(jarListInfo.getFiles().stream().filter(fileInfo -> fileInfo.getId().equals(fileInfoId)).count()).isEqualTo(0);
     }
 
     private void runTestJar() throws ApiException {
@@ -122,6 +95,71 @@ public class FlinkClientIT {
         });
     }
 
+    private JobIdWithStatus getRunningJob() throws ApiException {
+        await(() -> {
+            final JobIdsWithStatusOverview jobIdsWithStatusOverview = api.getJobs();
+            final List<JobIdWithStatus> jobs = listRunningJobs(jobIdsWithStatusOverview);
+            assertThat(jobs).hasSize(1);
+        });
+        final JobIdsWithStatusOverview jobIdsWithStatusOverview = api.getJobs();
+        dumpAsJson(jobIdsWithStatusOverview);
+        final List<JobIdWithStatus> jobs = listRunningJobs(jobIdsWithStatusOverview);
+        assertThat(jobs).hasSize(1);
+        return jobs.get(0);
+    }
+
+    private List<JobIdWithStatus> listRunningJobs(JobIdsWithStatusOverview jobIdsWithStatusOverview) {
+        return jobIdsWithStatusOverview.getJobs()
+                .stream()
+                .filter(jobIdWithStatus -> jobIdWithStatus.getStatus().getValue().equals("RUNNING"))
+                .collect(Collectors.toList());
+    }
+
+    private void verifyDashboardConfiguration(DashboardConfiguration dashboardConfiguration) {
+        assertThat(dashboardConfiguration.getRefreshInterval()).isEqualTo(3000);
+        assertThat(dashboardConfiguration.getTimezoneName()).isNotBlank();
+        assertThat(dashboardConfiguration.getTimezoneOffset()).isNotNull();
+        assertThat(dashboardConfiguration.getFlinkVersion()).isEqualTo("1.7.2");
+        assertThat(dashboardConfiguration.getFlinkRevision()).isEqualTo("ceba8af @ 11.02.2019 @ 14:17:09 UTC");
+    }
+
+    private void verifyJarUploadResponseBody(JarUploadResponseBody jarUploadResponseBody) {
+        assertThat(jarUploadResponseBody.getStatus()).isEqualTo(JarUploadResponseBody.StatusEnum.SUCCESS);
+        assertThat(jarUploadResponseBody.getFilename()).endsWith("_" + JAR_NAME);
+        assertThat(jarUploadResponseBody.getFilename()).contains("/flink-web-upload");
+    }
+
+    private void verifyJarListInfo(JarUploadResponseBody jarUploadResponseBody, JarListInfo jarListInfo) {
+        assertThat(jarListInfo.getFiles().size() > 0).isTrue();
+        IntStream.range(0, jarListInfo.getFiles().size()).forEach((index) -> {
+            assertThat(jarListInfo.getFiles().get(index).getId()).endsWith("_" + JAR_NAME);
+            assertThat(jarListInfo.getFiles().get(index).getName()).isEqualTo(JAR_NAME);
+        });
+        assertThat(jarListInfo.getFiles().stream().anyMatch(file -> jarUploadResponseBody.getFilename().endsWith("/" + file.getId()))).isTrue();
+    }
+
+    private void verifyJarDeleted(JarListInfo jarListInfo, String fileInfoId) {
+        assertThat(jarListInfo.getFiles().stream().filter(fileInfo -> fileInfo.getId().equals(fileInfoId)).count()).isEqualTo(0);
+    }
+
+    private void verifyTaskManagerDetailsInfo(TaskManagerDetailsInfo taskManagerDetails) {
+        assertThat(taskManagerDetails.getMetrics()).isNotNull();
+        assertThat(taskManagerDetails.getHardware().getFreeMemory()).isGreaterThan(0);
+    }
+
+    private void verifyTaskManagersInfo(TaskManagersInfo taskManagerInfo) {
+        assertThat(taskManagerInfo.getTaskmanagers()).isNotNull();
+        assertThat(taskManagerInfo.getTaskmanagers()).hasSize(1);
+    }
+
+    private void verifyMultipleJobsDetails(MultipleJobsDetails multipleJobsDetails) {
+        assertThat(multipleJobsDetails.getJobs().size() > 0).isTrue();
+    }
+
+    private void verifyJobIdWithStatusOverview(JobIdsWithStatusOverview jobIdsWithStatusOverview) {
+        assertThat(jobIdsWithStatusOverview.getJobs().size() > 0).isTrue();
+    }
+
     @BeforeEach
     void setup() {
         api = new FlinkApi();
@@ -133,7 +171,7 @@ public class FlinkClientIT {
         @Test
         void shouldShowConfig() throws ApiException {
             // when
-            DashboardConfiguration config = api.showConfig();
+            final DashboardConfiguration config = api.showConfig();
 
             // then
             dumpAsJson(config);
@@ -146,7 +184,7 @@ public class FlinkClientIT {
         @Test
         void shouldShowConfig() throws ApiException {
             // given
-            TestCallback<DashboardConfiguration> callback = new TestCallback<>();
+            final TestCallback<DashboardConfiguration> callback = new TestCallback<>();
 
             // when
             api.showConfigAsync(callback);
@@ -171,7 +209,7 @@ public class FlinkClientIT {
     class ShutdownAsync {
         @Test
         void shouldShutdownCluster() {
-//            TestCallback<Void> callback = new TestCallback<>();
+//            final TestCallback<Void> callback = new TestCallback<>();
 //
 //            api.shutdownClusterAsync(callback);
         }
@@ -182,46 +220,48 @@ public class FlinkClientIT {
         @Test
         void shouldUploadJar() throws ApiException {
             // when
-            JarUploadResponseBody result = api.uploadJar(new File(JAR_PATH));
+            final JarUploadResponseBody jarUploadResponseBody = api.uploadJar(new File(JAR_PATH));
 
             // then
-            assertThat(result).isNotNull();
-            dumpAsJson(result);
-            verifyJarUploadResponseBody(result);
+            assertThat(jarUploadResponseBody).isNotNull();
+            dumpAsJson(jarUploadResponseBody);
+            verifyJarUploadResponseBody(jarUploadResponseBody);
         }
 
         @Test
         void shouldThrowWhenUploadingNonExistentFile() {
-            assertThatThrownBy(() -> api.uploadJar(new File(ZIP_PATH))).isInstanceOf(ApiException.class);
+            assertThatThrownBy(() -> {
+                api.uploadJar(new File(ZIP_PATH));
+            }).isInstanceOf(ApiException.class);
         }
 
         @Test
         void shouldListJar() throws ApiException {
             // given
-            JarUploadResponseBody result = api.uploadJar(new File(JAR_PATH));
-            dumpAsJson(result);
+            final JarUploadResponseBody jarUploadResponseBody = api.uploadJar(new File(JAR_PATH));
+            dumpAsJson(jarUploadResponseBody);
 
             // when
-            JarListInfo jarListInfo = api.listJars();
+            final JarListInfo jarListInfo = api.listJars();
 
             // then
             assertThat(jarListInfo).isNotNull();
             dumpAsJson(jarListInfo);
-            verifyJarListInfo(result, jarListInfo);
+            verifyJarListInfo(jarUploadResponseBody, jarListInfo);
         }
 
         @Test
         void shouldDeleteJar() throws ApiException {
             // given
-            JarUploadResponseBody result = api.uploadJar(new File(JAR_PATH));
-            dumpAsJson(result);
-            JarFileInfo jarFileInfo = api.listJars().getFiles().get(0);
+            final JarUploadResponseBody jarUploadResponseBody = api.uploadJar(new File(JAR_PATH));
+            dumpAsJson(jarUploadResponseBody);
+            final JarFileInfo jarFileInfo = api.listJars().getFiles().get(0);
 
             // when
             api.deleteJar(jarFileInfo.getId());
 
             // then
-            JarListInfo jarListInfo = api.listJars();
+            final JarListInfo jarListInfo = api.listJars();
             dumpAsJson(jarListInfo);
             verifyJarDeleted(jarListInfo, jarFileInfo.getId());
         }
@@ -232,7 +272,7 @@ public class FlinkClientIT {
         @Test
         void shouldUploadJar() throws ApiException {
             // given
-            TestCallback<JarUploadResponseBody> callback = new TestCallback<>();
+            final TestCallback<JarUploadResponseBody> callback = new TestCallback<>();
 
             // when
             api.uploadJarAsync(new File(JAR_PATH), callback);
@@ -247,20 +287,19 @@ public class FlinkClientIT {
         @Test
         void shouldThrowWhenUploadingNonExistentFile() throws ApiException {
             // given
-            TestCallback<JarUploadResponseBody> callback = new TestCallback<>();
+            final TestCallback<JarUploadResponseBody> callback = new TestCallback<>();
 
             // when
             api.uploadJarAsync(new File(ZIP_PATH), callback);
 
             // then
-            await(() -> assertThat(callback.e).isNotNull());
+            await(() -> assertThat(callback.exception).isNotNull());
         }
 
         @Test
         void shouldListJar() throws ApiException {
             // given
-            TestCallback<JarListInfo> callback = new TestCallback<>();
-
+            final TestCallback<JarListInfo> callback = new TestCallback<>();
             JarUploadResponseBody result = api.uploadJar(new File(JAR_PATH));
             dumpAsJson(result);
 
@@ -277,18 +316,17 @@ public class FlinkClientIT {
         @Test
         void shouldDeleteJar() throws ApiException {
             // given
-            TestCallback<Void> callback = new TestCallback<>();
-
-            JarUploadResponseBody result = api.uploadJar(new File(JAR_PATH));
+            final TestCallback<Void> callback = new TestCallback<>();
+            final JarUploadResponseBody result = api.uploadJar(new File(JAR_PATH));
             dumpAsJson(result);
-            JarFileInfo jarFileInfo = api.listJars().getFiles().get(0);
+            final JarFileInfo jarFileInfo = api.listJars().getFiles().get(0);
 
             // when
             api.deleteJarAsync(jarFileInfo.getId(), callback);
 
             // then
             await(() -> {
-                JarListInfo jarListInfo = api.listJars();
+                final JarListInfo jarListInfo = api.listJars();
                 dumpAsJson(jarListInfo);
                 verifyJarDeleted(jarListInfo, jarFileInfo.getId());
             });
@@ -308,210 +346,231 @@ public class FlinkClientIT {
         }
 
         @Test
-        void shouldManageJobs() throws ApiException {
+        void shouldReturnJobsMetrics() throws ApiException {
             // when
-            JobIdsWithStatusOverview statusOverview = api.getJobs();
-
-            // then
-            assertThat(statusOverview).isNotNull();
-            dumpAsJson(statusOverview);
-
-            final List<JobIdWithStatus> jobs = statusOverview.getJobs()
-                    .stream()
-                    .filter(jobIdWithStatus -> jobIdWithStatus.getStatus().getValue().equals("RUNNING"))
-                    .collect(Collectors.toList());
-            assertThat(jobs).hasSize(1);
-            final String jobId = jobs.get(0).getId();
-
-            // and when
-            MultipleJobsDetails multipleJobsDetails = api.getJobsOverview();
-
-            // then
-            assertThat(multipleJobsDetails).isNotNull();
-            dumpAsJson(multipleJobsDetails);
-            assertThat(multipleJobsDetails.getJobs().size() > 0).isTrue();
-
-            // and when
-            Object jobsMetrics = api.getJobsMetrics("numberOfFailedCheckpoints", "sum", null);
+            final Object jobsMetrics = api.getJobsMetrics("numberOfFailedCheckpoints", "sum", null);
 
             // then
             assertThat(jobsMetrics).isNotNull();
             dumpAsJson(jobsMetrics);
+        }
 
-            // and when
-            String jobConfig = api.getJobConfig(jobId);
+        @Test
+        void shouldReturnJobsDetails() throws ApiException {
+            // when
+            final MultipleJobsDetails multipleJobsDetails = api.getJobsOverview();
+
+            // then
+            assertThat(multipleJobsDetails).isNotNull();
+            dumpAsJson(multipleJobsDetails);
+            verifyMultipleJobsDetails(multipleJobsDetails);
+        }
+
+        @Test
+        void shouldReturnJobs() throws ApiException {
+            // when
+            final JobIdsWithStatusOverview jobIdsWithStatusOverview = api.getJobs();
+
+            // then
+            assertThat(jobIdsWithStatusOverview).isNotNull();
+            dumpAsJson(jobIdsWithStatusOverview);
+
+            verifyJobIdWithStatusOverview(jobIdsWithStatusOverview);
+        }
+
+        @Test
+        void shouldReturnJobDetailsAndOthers() throws ApiException {
+            // given
+            final String jobId = getRunningJob().getId();
+
+            // when
+            final String jobConfig = api.getJobConfig(jobId);
 
             // then
             assertThat(jobConfig).isNotNull();
-            System.out.println(jobConfig);
+            dumpAsJson(jobConfig);
 
-            // and when
-            JobPlanInfo jobPlan = api.getJobPlan(jobId);
+            // when
+            final JobPlanInfo jobPlan = api.getJobPlan(jobId);
 
             // then
             assertThat(jobPlan).isNotNull();
             dumpAsJson(jobPlan);
             assertThat(jobPlan.getPlan()).isNotNull();
 
-            // and when
-            JobDetailsInfo jobDetails = api.getJobDetails(jobId);
+            // when
+            final Object jobMetrics = api.getJobMetrics(jobId, "numberOfFailedCheckpoints");
 
             // then
-            assertThat(jobDetails).isNotNull();
-            dumpAsJson(jobDetails);
-            assertThat(jobDetails.getPlan()).isNotNull();
-            assertThat(jobDetails.getJid()).isEqualTo(jobId);
-            assertThat(jobDetails.getVertices()).hasSize(1);
+            assertThat(jobMetrics).isNotNull();
+            dumpAsJson(jobMetrics);
 
-            // and when
-            CheckpointingStatistics checkpointingStatistics = api.getJobCheckpoints(jobId);
+            // when
+            final JobDetailsInfo jobDetailsInfo = api.getJobDetails(jobId);
 
             // then
-            assertThat(checkpointingStatistics).isNotNull();
-            dumpAsJson(checkpointingStatistics);
-            assertThat(checkpointingStatistics.getCounts()).isNotNull();
+            assertThat(jobDetailsInfo).isNotNull();
+            dumpAsJson(jobDetailsInfo);
+            assertThat(jobDetailsInfo.getPlan()).isNotNull();
+            assertThat(jobDetailsInfo.getJid()).isEqualTo(jobId);
+            assertThat(jobDetailsInfo.getVertices()).hasSize(1);
 
-            // and when
-            JobAccumulatorsInfo jobAccumulatorsInfo = api.getJobAccumulators(jobId, true);
+            // when
+            final JobExecutionResultResponseBody jobExecutionResultResponseBody = api.getJobResult(jobId);
+
+            // then
+            assertThat(jobExecutionResultResponseBody).isNotNull();
+            dumpAsJson(jobExecutionResultResponseBody);
+            assertThat(jobExecutionResultResponseBody.getStatus().getId()).isEqualTo(QueueStatus.IdEnum.IN_PROGRESS);
+            assertThat(jobExecutionResultResponseBody.getJobExecutionResult()).isNull();
+
+            // when
+            final JobExceptionsInfo jobExceptionsInfo = api.getJobExceptions(jobId);
+
+            // then
+            assertThat(jobExceptionsInfo).isNotNull();
+            dumpAsJson(jobExceptionsInfo);
+            assertThat(jobExceptionsInfo.getAllExceptions()).isNotNull();
+
+            // when
+            final JobAccumulatorsInfo jobAccumulatorsInfo = api.getJobAccumulators(jobId, true);
 
             // then
             assertThat(jobAccumulatorsInfo).isNotNull();
             dumpAsJson(jobAccumulatorsInfo);
             assertThat(jobAccumulatorsInfo.getJobAccumulators()).isNotNull();
 
-            // and when
-            JobExceptionsInfo exceptionInjobExceptionsInfoo = api.getJobExceptions(jobId);
+            // when
+            final CheckpointingStatistics checkpointingStatistics = api.getJobCheckpoints(jobId);
 
             // then
-            assertThat(exceptionInjobExceptionsInfoo).isNotNull();
-            dumpAsJson(exceptionInjobExceptionsInfoo);
-            assertThat(exceptionInjobExceptionsInfoo.getAllExceptions()).isNotNull();
+            assertThat(checkpointingStatistics).isNotNull();
+            dumpAsJson(checkpointingStatistics);
+            assertThat(checkpointingStatistics.getCounts()).isNotNull();
+        }
 
-            // and when
-            Object jobMetrics = api.getJobMetrics(jobId, "numberOfFailedCheckpoints");
+        @Test
+        void shouldReturnJobTaskDetailsAndOthers() throws ApiException {
+            // given
+            final String jobId = getRunningJob().getId();
+            final JobDetailsInfo jobDetailsInfo = api.getJobDetails(jobId);
+            final String vertexid = jobDetailsInfo.getVertices().get(0).getId().toString();
 
-            // then
-            assertThat(jobMetrics).isNotNull();
-            dumpAsJson(jobMetrics);
-
-            // and when
-            JobExecutionResultResponseBody jobResult = api.getJobResult(jobId);
-
-            // then
-            assertThat(jobResult).isNotNull();
-            dumpAsJson(jobResult);
-            assertThat(jobResult.getStatus().getId()).isEqualTo(QueueStatus.IdEnum.IN_PROGRESS);
-            assertThat(jobResult.getJobExecutionResult()).isNull();
-
-            // and when
-            CheckpointConfigInfo checkpointConfigInfo = api.getJobCheckpointsConfig(jobId);
+            // when
+            final Object jobTaskMetrics = api.getJobTaskMetrics(jobId, vertexid, "");/*TODO*/
 
             // then
-            assertThat(checkpointConfigInfo).isNotNull();
-            dumpAsJson(checkpointConfigInfo);
-            assertThat(checkpointConfigInfo.getInterval()).isEqualTo(60000L);
+            assertThat(jobTaskMetrics).isNotNull();
+            dumpAsJson(jobTaskMetrics);
 
-            // and when
-            JobVertexAccumulatorsInfo jobTaskAllAccumulatorsInfo = api.getJobTaskAccumulators(jobId, jobDetails.getVertices().get(0).getId().toString());
-
-            // then
-            assertThat(jobTaskAllAccumulatorsInfo).isNotNull();
-            dumpAsJson(jobTaskAllAccumulatorsInfo);
-            assertThat(jobTaskAllAccumulatorsInfo.getUserAccumulators()).isNotNull();
-
-            // and when
-            JobVertexBackPressureInfo jobTaskBackpressure = api.getJobTaskBackpressure(jobId, jobDetails.getVertices().get(0).getId().toString());
+            // when
+            final JobVertexBackPressureInfo jobTaskBackpressure = api.getJobTaskBackpressure(jobId, vertexid);
 
             // then
             assertThat(jobTaskBackpressure).isNotNull();
             dumpAsJson(jobTaskBackpressure);
             assertThat(jobTaskBackpressure.getStatus()).isEqualTo(JobVertexBackPressureInfo.StatusEnum.DEPRECATED);
 
-            // and when
-            JobVertexDetailsInfo jobTaskDetails = api.getJobTaskDetails(jobId, jobDetails.getVertices().get(0).getId().toString());
+            // when
+            final JobVertexDetailsInfo jobVertexDetailsInfo = api.getJobTaskDetails(jobId, vertexid);
 
             // then
-            assertThat(jobTaskDetails).isNotNull();
-            dumpAsJson(jobTaskDetails);
-            assertThat(jobTaskDetails.getSubtasks()).hasSize(1);
+            assertThat(jobVertexDetailsInfo).isNotNull();
+            dumpAsJson(jobVertexDetailsInfo);
+            assertThat(jobVertexDetailsInfo.getSubtasks()).hasSize(1);
 
-            // and when
-            JobVertexTaskManagersInfo jobTaskManagerDetails = api.getJobTaskDetailsByTaskManager(jobId, jobDetails.getVertices().get(0).getId().toString());
-
-            // then
-            assertThat(jobTaskManagerDetails).isNotNull();
-            dumpAsJson(jobTaskManagerDetails);
-            assertThat(jobTaskManagerDetails.getTaskmanagers()).hasSize(1);
-
-            // and when
-            Object jobTaskMetrics = api.getJobTaskMetrics(jobId, jobDetails.getVertices().get(0).getId().toString(), "");/*TODO*/
+            // when
+            final JobVertexAccumulatorsInfo jobVertexAccumulatorsInfo = api.getJobTaskAccumulators(jobId, vertexid);
 
             // then
-            assertThat(jobTaskMetrics).isNotNull();
-            dumpAsJson(jobTaskMetrics);
+            assertThat(jobVertexAccumulatorsInfo).isNotNull();
+            dumpAsJson(jobVertexAccumulatorsInfo);
+            assertThat(jobVertexAccumulatorsInfo.getUserAccumulators()).isNotNull();
 
-            // and when
-            SubtasksAllAccumulatorsInfo jobSubtasksAllAccumulatorsInfo = api.getJobSubtaskAccumulators(jobId, jobDetails.getVertices().get(0).getId().toString());
+            // when
+            final JobVertexTaskManagersInfo jobVertexTaskManagersInfo = api.getJobTaskDetailsByTaskManager(jobId, vertexid);
 
             // then
-            assertThat(jobSubtasksAllAccumulatorsInfo).isNotNull();
-            dumpAsJson(jobSubtasksAllAccumulatorsInfo);
-            assertThat(jobSubtasksAllAccumulatorsInfo.getSubtasks()).hasSize(1);
+            assertThat(jobVertexTaskManagersInfo).isNotNull();
+            dumpAsJson(jobVertexTaskManagersInfo);
+            assertThat(jobVertexTaskManagersInfo.getTaskmanagers()).hasSize(1);
+        }
+
+        @Test
+        void shouldReturnJobSubtaskDetailsAndOthers() throws ApiException {
+            // given
+            final String jobId = getRunningJob().getId();
+            final JobDetailsInfo jobDetailsInfo = api.getJobDetails(jobId);
+            final String vertexId = jobDetailsInfo.getVertices().get(0).getId().toString();
 
             Awaitility.await()
-                    .pollDelay(20, TimeUnit.SECONDS)
-                    .atMost(700, TimeUnit.SECONDS)
-                    .pollInterval(20, TimeUnit.SECONDS)
+                    .pollInterval(1, TimeUnit.SECONDS)
+                    .pollDelay(5, TimeUnit.SECONDS)
+                    .atMost(30, TimeUnit.SECONDS)
                     .untilAsserted(() -> {
-                        // and when
-                        SubtaskExecutionAttemptDetailsInfo subtaskExecutionDetailsInfo = api.getJobSubtaskDetails(jobId, jobDetails.getVertices().get(0).getId().toString(), 0);
+                        // when
+                        final SubtaskExecutionAttemptDetailsInfo subtaskExecutionAttemptDetailsInfo = api.getJobSubtaskDetails(jobId, vertexId, 0);
 
                         // then
-                        assertThat(subtaskExecutionDetailsInfo).isNotNull();
-                        dumpAsJson(subtaskExecutionDetailsInfo);
-                        assertThat(subtaskExecutionDetailsInfo.getStatus()).isEqualTo(SubtaskExecutionAttemptDetailsInfo.StatusEnum.RUNNING);
+                        assertThat(subtaskExecutionAttemptDetailsInfo).isNotNull();
+                        dumpAsJson(subtaskExecutionAttemptDetailsInfo);
+                        assertThat(subtaskExecutionAttemptDetailsInfo.getStatus()).isEqualTo(SubtaskExecutionAttemptDetailsInfo.StatusEnum.RUNNING);
                     });
 
-//            // and when
-//            SubtaskExecutionAttemptAccumulatorsInfo subtaskExecutionAttemptAccumulatorsInfo = api.getJobSubtaskAttemptAccumulators(jobId, jobDetails.getVertices().get(0).getId().toString(), 0, 0);
-//
-//            // then
-//            assertThat(subtaskExecutionAttemptAccumulatorsInfo).isNotNull();
-//            dumpAsJson(subtaskExecutionAttemptAccumulatorsInfo);
-//            assertThat(subtaskExecutionAttemptAccumulatorsInfo.getUserAccumulators()).isNotNull();
-
-//            // and when
-//            SubtaskExecutionAttemptDetailsInfo subtaskExecutionAttemptDetailsInfo = api.getJobSubtaskAttemptDetails(jobId, jobDetails.getVertices().get(0).getId().toString(), 0, 0);
-//
-//            // then
-//            assertThat(subtaskExecutionAttemptDetailsInfo).isNotNull();
-//            dumpAsJson(subtaskExecutionAttemptDetailsInfo);
-//            assertThat(subtaskExecutionAttemptDetailsInfo.getStatus()).isEqualTo(SubtaskExecutionAttemptDetailsInfo.StatusEnum.RUNNING);
-
-            // and when
-            Object subtaskMetrics = api.getJobSubtaskMetrics(jobId, jobDetails.getVertices().get(0).getId().toString(), 0, "");/*TODO*/
+            // when
+            final Object jobSubtaskMetrics = api.getJobSubtaskMetrics(jobId, vertexId, 0, "");/*TODO*/
 
             // then
-            assertThat(subtaskMetrics).isNotNull();
-            dumpAsJson(subtaskMetrics);
+            assertThat(jobSubtaskMetrics).isNotNull();
+            dumpAsJson(jobSubtaskMetrics);
 
-            // and when
-            SubtasksTimesInfo subtasksTimesInfo = api.getJobSubtaskTimes(jobId, jobDetails.getVertices().get(0).getId().toString());
+            // when
+            final Object jobAggregatedSubtaskMetrics = api.getJobAggregatedSubtaskMetrics(jobId, vertexId, "", "sum", null);/*TODO*/
+
+            // then
+            assertThat(jobAggregatedSubtaskMetrics).isNotNull();
+            dumpAsJson(jobAggregatedSubtaskMetrics);
+
+            // when
+            final SubtasksTimesInfo subtasksTimesInfo = api.getJobSubtaskTimes(jobId, vertexId);
 
             // then
             assertThat(subtasksTimesInfo).isNotNull();
             dumpAsJson(subtasksTimesInfo);
             assertThat(subtasksTimesInfo.getSubtasks()).hasSize(1);
 
-            // and when
-            Object subtasksAggregatedMetrics = api.getJobAggregatedSubtaskMetrics(jobId, jobDetails.getVertices().get(0).getId().toString(), "", "sum", null);/*TODO*/
+            // when
+            final SubtasksAllAccumulatorsInfo subtasksAllAccumulatorsInfo = api.getJobSubtaskAccumulators(jobId, vertexId);
 
             // then
-            assertThat(subtasksAggregatedMetrics).isNotNull();
-            dumpAsJson(subtasksAggregatedMetrics);
+            assertThat(subtasksAllAccumulatorsInfo).isNotNull();
+            dumpAsJson(subtasksAllAccumulatorsInfo);
+            assertThat(subtasksAllAccumulatorsInfo.getSubtasks()).hasSize(1);
 
-            // and when
-            TriggerResponse triggerSavepointResponse = api.createJobSavepoint(new SavepointTriggerRequestBody().cancelJob(false).targetDirectory("file:///var/tmp"), jobId);
+//            // when
+//            final SubtaskExecutionAttemptAccumulatorsInfo subtaskExecutionAttemptAccumulatorsInfo = api.getJobSubtaskAttemptAccumulators(jobId, vertexId, 0, 0);
+//
+//            // then
+//            assertThat(subtaskExecutionAttemptAccumulatorsInfo).isNotNull();
+//            dumpAsJson(subtaskExecutionAttemptAccumulatorsInfo);
+//            assertThat(subtaskExecutionAttemptAccumulatorsInfo.getUserAccumulators()).isNotNull();
+//
+//            // when
+//            final SubtaskExecutionAttemptDetailsInfo subtaskExecutionAttemptDetailsInfo = api.getJobSubtaskAttemptDetails(jobId, vertexId, 0, 0);
+//
+//            // then
+//            assertThat(subtaskExecutionAttemptDetailsInfo).isNotNull();
+//            dumpAsJson(subtaskExecutionAttemptDetailsInfo);
+//            assertThat(subtaskExecutionAttemptDetailsInfo.getStatus()).isEqualTo(SubtaskExecutionAttemptDetailsInfo.StatusEnum.RUNNING);
+        }
+
+        @Test
+        void shouldCreateSavepoint() throws ApiException {
+            // given
+            final String jobId = getRunningJob().getId();
+
+            // when
+            final TriggerResponse triggerSavepointResponse = api.createJobSavepoint(new SavepointTriggerRequestBody().cancelJob(false).targetDirectory("file:///var/tmp"), jobId);
 
             // then
             assertThat(triggerSavepointResponse).isNotNull();
@@ -519,21 +578,27 @@ public class FlinkClientIT {
             assertThat(triggerSavepointResponse.getRequestId()).isNotNull();
 
             Awaitility.await()
-                    .pollDelay(20, TimeUnit.SECONDS)
-                    .atMost(700, TimeUnit.SECONDS)
-                    .pollInterval(20, TimeUnit.SECONDS)
+                    .pollInterval(1, TimeUnit.SECONDS)
+                    .pollDelay(5, TimeUnit.SECONDS)
+                    .atMost(30, TimeUnit.SECONDS)
                     .untilAsserted(() -> {
-                        // and when
-                        AsynchronousOperationResult asynchronousOperationResult = api.getJobSavepointStatus(jobId, triggerSavepointResponse.getRequestId().toString());
+                        // when
+                        final AsynchronousOperationResult asynchronousOperationResult = api.getJobSavepointStatus(jobId, triggerSavepointResponse.getRequestId().toString());
 
                         // then
                         assertThat(asynchronousOperationResult).isNotNull();
                         dumpAsJson(asynchronousOperationResult);
                         assertThat(asynchronousOperationResult.getStatus().getId()).isEqualTo(QueueStatus.IdEnum.COMPLETED);
                     });
+        }
 
-            // and when
-            TriggerResponse triggerRescalingResponse = api.triggerJobRescaling(jobId, 2);
+        @Test
+        void shouldRescaleJob() throws ApiException {
+            // given
+            final String jobId = getRunningJob().getId();
+
+            // when
+            final TriggerResponse triggerRescalingResponse = api.triggerJobRescaling(jobId, 2);
 
             // then
             assertThat(triggerRescalingResponse).isNotNull();
@@ -541,50 +606,69 @@ public class FlinkClientIT {
             assertThat(triggerRescalingResponse.getRequestId()).isNotNull();
 
             Awaitility.await()
-                    .pollDelay(20, TimeUnit.SECONDS)
-                    .atMost(700, TimeUnit.SECONDS)
-                    .pollInterval(20, TimeUnit.SECONDS)
+                    .pollInterval(1, TimeUnit.SECONDS)
+                    .pollDelay(5, TimeUnit.SECONDS)
+                    .atMost(30, TimeUnit.SECONDS)
                     .untilAsserted(() -> {
-                        // and when
-                        AsynchronousOperationResult asynchronousOperationResult = api.getJobRescalingStatus(jobId, triggerRescalingResponse.getRequestId().toString());
+                        // when
+                        final AsynchronousOperationResult asynchronousOperationResult = api.getJobRescalingStatus(jobId, triggerRescalingResponse.getRequestId().toString());
 
                         // then
                         assertThat(asynchronousOperationResult).isNotNull();
                         dumpAsJson(asynchronousOperationResult);
                         assertThat(asynchronousOperationResult.getStatus().getId()).isEqualTo(QueueStatus.IdEnum.COMPLETED);
                     });
+        }
+
+        @Test
+        void shouldReturnCheckpointsDetailsAndStatistics() throws ApiException {
+            // given
+            final String jobId = getRunningJob().getId();
+            final JobDetailsInfo jobDetailsInfo = api.getJobDetails(jobId);
+            final String vertexId = jobDetailsInfo.getVertices().get(0).getId().toString();
+
+            // when
+            final CheckpointConfigInfo checkpointConfigInfo = api.getJobCheckpointsConfig(jobId);
+
+            // then
+            assertThat(checkpointConfigInfo).isNotNull();
+            dumpAsJson(checkpointConfigInfo);
+            assertThat(checkpointConfigInfo.getInterval()).isEqualTo(60000L);
 
             Awaitility.await()
-                    .pollDelay(20, TimeUnit.SECONDS)
-                    .atMost(700, TimeUnit.SECONDS)
                     .pollInterval(20, TimeUnit.SECONDS)
+                    .pollDelay(20, TimeUnit.SECONDS)
+                    .atMost(120, TimeUnit.SECONDS)
                     .untilAsserted(() -> {
-                        // and when
-                        CheckpointingStatistics jobCheckpoints = api.getJobCheckpoints(jobId);
+                        // when
+                        final CheckpointingStatistics jobCheckpoints = api.getJobCheckpoints(jobId);
 
                         // then
                         assertThat(jobCheckpoints).isNotNull();
                         dumpAsJson(jobCheckpoints);
                         assertThat(jobCheckpoints.getHistory()).isNotNull();
                         assertThat(jobCheckpoints.getHistory().size() > 0).isTrue();
-
-                        // and when
-                        Integer checkpointId = jobCheckpoints.getHistory().get(0).getId();
-                        CheckpointStatistics jobCheckpointDetails = api.getJobCheckpointDetails(jobId, checkpointId);
-
-                        // then
-                        assertThat(jobCheckpointDetails).isNotNull();
-                        dumpAsJson(jobCheckpointDetails);
-                        assertThat(jobCheckpointDetails.getStatus().getValue()).isEqualTo(CheckpointStatistics.StatusEnum.COMPLETED.getValue());
-
-                        // and when
-                        TaskCheckpointStatisticsWithSubtaskDetails taskCheckpointStatistics = api.getJobCheckpointStatistics(jobId, checkpointId, jobDetails.getVertices().get(0).getId().toString());
-
-                        // then
-                        assertThat(taskCheckpointStatistics).isNotNull();
-                        dumpAsJson(taskCheckpointStatistics);
-                        assertThat(taskCheckpointStatistics.getStatus().getValue()).isEqualTo(CheckpointStatistics.StatusEnum.COMPLETED.getValue());
                     });
+
+            // given
+            final CheckpointingStatistics jobCheckpoints = api.getJobCheckpoints(jobId);
+            final Integer checkpointId = jobCheckpoints.getHistory().get(0).getId();
+
+            // when
+            final CheckpointStatistics jobCheckpointDetails = api.getJobCheckpointDetails(jobId, checkpointId);
+
+            // then
+            assertThat(jobCheckpointDetails).isNotNull();
+            dumpAsJson(jobCheckpointDetails);
+            assertThat(jobCheckpointDetails.getStatus().getValue()).isEqualTo(CheckpointStatistics.StatusEnum.COMPLETED.getValue());
+
+            // when
+            final TaskCheckpointStatisticsWithSubtaskDetails jobCheckpointStatistics = api.getJobCheckpointStatistics(jobId, checkpointId, vertexId);
+
+            // then
+            assertThat(jobCheckpointStatistics).isNotNull();
+            dumpAsJson(jobCheckpointStatistics);
+            assertThat(jobCheckpointStatistics.getStatus().getValue()).isEqualTo(CheckpointStatistics.StatusEnum.COMPLETED.getValue());
         }
     }
 
@@ -601,7 +685,477 @@ public class FlinkClientIT {
         }
 
         @Test
-        void shouldRunJob() {
+        void shouldReturnJobsMetrics() throws ApiException {
+            // given
+            final TestCallback<Object> callback = new TestCallback<>();
+
+            // when
+            api.getJobsMetricsAsync("numberOfFailedCheckpoints", "sum", null, callback);
+
+            // then
+            await(() -> {
+                assertThat(callback.result).isNotNull();
+            });
+        }
+
+        @Test
+        void shouldReturnJobsDetails() throws ApiException {
+            // given
+            final TestCallback<MultipleJobsDetails> callback = new TestCallback<>();
+
+            // when
+            api.getJobsOverviewAsync(callback);
+
+            // then
+            await(() -> {
+                assertThat(callback.result).isNotNull();
+                verifyMultipleJobsDetails(callback.result);
+            });
+        }
+
+        @Test
+        void shouldReturnJobs() throws ApiException {
+            // given
+            final TestCallback<JobIdsWithStatusOverview> callback = new TestCallback<>();
+
+            // when
+            api.getJobsAsync(callback);
+
+            // then
+            await(() -> {
+                assertThat(callback.result).isNotNull();
+                verifyJobIdWithStatusOverview(callback.result);
+            });
+        }
+
+        @Test
+        void shouldReturnJobDetailsAndOthers() throws ApiException {
+            // given
+            final String jobId = getRunningJob().getId();
+
+            final TestCallback<String> jobConfigCallback = new TestCallback<>();
+
+            // when
+            api.getJobConfigAsync(jobId, jobConfigCallback);
+
+            // then
+            await(() -> {
+                assertThat(jobConfigCallback.result).isNotNull();
+            });
+
+            // given
+            final TestCallback<JobPlanInfo> jobPlanCallback = new TestCallback<>();
+
+            // when
+            api.getJobPlanAsync(jobId, jobPlanCallback);
+
+            // then
+            await(() -> {
+                assertThat(jobPlanCallback.result).isNotNull();
+                assertThat(jobPlanCallback.result.getPlan()).isNotNull();
+            });
+
+            // given
+            final TestCallback<Object> jobMetricsCallback = new TestCallback<>();
+
+            // when
+            api.getJobMetricsAsync(jobId, "numberOfFailedCheckpoints", jobMetricsCallback);
+
+            // then
+            await(() -> {
+                assertThat(jobMetricsCallback.result).isNotNull();
+            });
+
+            // given
+            final TestCallback<JobDetailsInfo> jobDetailsCallback = new TestCallback<>();
+
+            // when
+            api.getJobDetailsAsync(jobId, jobDetailsCallback);
+
+            // then
+            await(() -> {
+                assertThat(jobDetailsCallback.result).isNotNull();
+                assertThat(jobDetailsCallback.result.getPlan()).isNotNull();
+                assertThat(jobDetailsCallback.result.getJid()).isEqualTo(jobId);
+                assertThat(jobDetailsCallback.result.getVertices()).hasSize(1);
+            });
+
+            // given
+            final TestCallback<JobExecutionResultResponseBody> jobExecutionResultResponseBodyCallback = new TestCallback<>();
+
+            // when
+            api.getJobResultAsync(jobId, jobExecutionResultResponseBodyCallback);
+
+            // then
+            await(() -> {
+                assertThat(jobExecutionResultResponseBodyCallback.result).isNotNull();
+                assertThat(jobExecutionResultResponseBodyCallback.result.getStatus().getId()).isEqualTo(QueueStatus.IdEnum.IN_PROGRESS);
+                assertThat(jobExecutionResultResponseBodyCallback.result.getJobExecutionResult()).isNull();
+            });
+
+            // given
+            final TestCallback<JobExceptionsInfo> jobExceptionsInfoCallback = new TestCallback<>();
+
+            // when
+            api.getJobExceptionsAsync(jobId, jobExceptionsInfoCallback);
+
+            // then
+            await(() -> {
+                assertThat(jobExceptionsInfoCallback.result).isNotNull();
+                assertThat(jobExceptionsInfoCallback.result.getAllExceptions()).isNotNull();
+            });
+
+            // given
+            final TestCallback<JobAccumulatorsInfo> jobAccumulatorsInfoCallback = new TestCallback<>();
+
+            // when
+            api.getJobAccumulatorsAsync(jobId, true, jobAccumulatorsInfoCallback);
+
+            // then
+            await(() -> {
+                assertThat(jobAccumulatorsInfoCallback.result).isNotNull();
+                assertThat(jobAccumulatorsInfoCallback.result.getJobAccumulators()).isNotNull();
+            });
+
+            // given
+            final TestCallback<CheckpointingStatistics> checkpointingStatisticsCallback = new TestCallback<>();
+
+            // when
+            api.getJobCheckpointsAsync(jobId, checkpointingStatisticsCallback);
+
+            // then
+            await(() -> {
+                assertThat(checkpointingStatisticsCallback.result).isNotNull();
+                assertThat(checkpointingStatisticsCallback.result.getCounts()).isNotNull();
+            });
+        }
+
+        @Test
+        void shouldReturnJobTaskDetailsAndOthers() throws ApiException {
+            // given
+            final String jobId = getRunningJob().getId();
+            final JobDetailsInfo jobDetailsInfo = api.getJobDetails(jobId);
+            final String vertexid = jobDetailsInfo.getVertices().get(0).getId().toString();
+
+            final TestCallback<Object> jobTaskMetricsCallback = new TestCallback<>();
+
+            // when
+            api.getJobTaskMetricsAsync(jobId, vertexid, "", jobTaskMetricsCallback);/*TODO*/
+
+            // then
+            await(() -> {
+                assertThat(jobTaskMetricsCallback.result).isNotNull();
+            });
+
+            // given
+            final TestCallback<JobVertexBackPressureInfo> jobTaskBackpressureCallback = new TestCallback<>();
+
+            // when
+            api.getJobTaskBackpressureAsync(jobId, vertexid, jobTaskBackpressureCallback);
+
+            // then
+            await(() -> {
+                assertThat(jobTaskBackpressureCallback.result).isNotNull();
+                assertThat(jobTaskBackpressureCallback.result.getStatus()).isEqualTo(JobVertexBackPressureInfo.StatusEnum.DEPRECATED);
+            });
+
+            // given
+            final TestCallback<JobVertexDetailsInfo> jobVertexDetailsInfoCallback = new TestCallback<>();
+
+            // when
+            api.getJobTaskDetailsAsync(jobId, vertexid, jobVertexDetailsInfoCallback);
+
+            // then
+            await(() -> {
+                assertThat(jobVertexDetailsInfoCallback.result).isNotNull();
+                assertThat(jobVertexDetailsInfoCallback.result.getSubtasks()).hasSize(1);
+            });
+
+            // given
+            final TestCallback<JobVertexAccumulatorsInfo> jobVertexAccumulatorsInfoCallback = new TestCallback<>();
+
+            // when
+            api.getJobTaskAccumulatorsAsync(jobId, vertexid, jobVertexAccumulatorsInfoCallback);
+
+            // then
+            await(() -> {
+                assertThat(jobVertexAccumulatorsInfoCallback.result).isNotNull();
+                assertThat(jobVertexAccumulatorsInfoCallback.result.getUserAccumulators()).isNotNull();
+            });
+
+            // given
+            final TestCallback<JobVertexTaskManagersInfo> jobVertexTaskManagersInfoCallback = new TestCallback<>();
+
+            // when
+            api.getJobTaskDetailsByTaskManagerAsync(jobId, vertexid, jobVertexTaskManagersInfoCallback);
+
+            // then
+            await(() -> {
+                assertThat(jobVertexTaskManagersInfoCallback.result).isNotNull();
+                assertThat(jobVertexTaskManagersInfoCallback.result.getTaskmanagers()).hasSize(1);
+            });
+        }
+
+        @Test
+        void shouldReturnJobSubtaskDetailsAndOthers() throws ApiException {
+            // given
+            final String jobId = getRunningJob().getId();
+            final JobDetailsInfo jobDetailsInfo = api.getJobDetails(jobId);
+            final String vertexId = jobDetailsInfo.getVertices().get(0).getId().toString();
+
+            Awaitility.await()
+                    .pollInterval(1, TimeUnit.SECONDS)
+                    .pollDelay(5, TimeUnit.SECONDS)
+                    .atMost(30, TimeUnit.SECONDS)
+                    .untilAsserted(() -> {
+                        // when
+                        final SubtaskExecutionAttemptDetailsInfo subtaskExecutionAttemptDetailsInfo = api.getJobSubtaskDetails(jobId, vertexId, 0);
+
+                        // then
+                        assertThat(subtaskExecutionAttemptDetailsInfo).isNotNull();
+                        dumpAsJson(subtaskExecutionAttemptDetailsInfo);
+                        assertThat(subtaskExecutionAttemptDetailsInfo.getStatus()).isEqualTo(SubtaskExecutionAttemptDetailsInfo.StatusEnum.RUNNING);
+                    });
+
+            // given
+            final TestCallback<SubtaskExecutionAttemptDetailsInfo> subtaskExecutionDetailsInfoCallback = new TestCallback<>();
+
+            // when
+            api.getJobSubtaskDetailsAsync(jobId, vertexId, 0, subtaskExecutionDetailsInfoCallback);
+
+            await(() -> {
+                assertThat(subtaskExecutionDetailsInfoCallback.result).isNotNull();
+                assertThat(subtaskExecutionDetailsInfoCallback.result.getStatus()).isEqualTo(SubtaskExecutionAttemptDetailsInfo.StatusEnum.RUNNING);
+            });
+
+            // given
+            final TestCallback<Object> jobSubtaskMetricsCallback = new TestCallback<>();
+
+            // when
+            api.getJobSubtaskMetricsAsync(jobId, vertexId, 0, "", jobSubtaskMetricsCallback);/*TODO*/
+
+            // then
+            await(() -> {
+                assertThat(jobSubtaskMetricsCallback.result).isNotNull();
+            });
+
+            // given
+            final TestCallback<Object> jobAggregatedSubtaskMetricsCallback = new TestCallback<>();
+
+            // when
+            api.getJobAggregatedSubtaskMetricsAsync(jobId, vertexId, "", "sum", null, jobAggregatedSubtaskMetricsCallback);/*TODO*/
+
+            // then
+            await(() -> {
+                assertThat(jobAggregatedSubtaskMetricsCallback.result).isNotNull();
+            });
+
+            // given
+            final TestCallback<SubtasksTimesInfo> subtasksTimesInfoCallback = new TestCallback<>();
+
+            // when
+            api.getJobSubtaskTimesAsync(jobId, vertexId, subtasksTimesInfoCallback);
+
+            // then
+            await(() -> {
+                assertThat(subtasksTimesInfoCallback.result).isNotNull();
+                assertThat(subtasksTimesInfoCallback.result.getSubtasks()).hasSize(1);
+            });
+
+            // given
+            final TestCallback<SubtasksAllAccumulatorsInfo> subtasksAllAccumulatorsInfoCallback = new TestCallback<>();
+
+            // when
+            api.getJobSubtaskAccumulatorsAsync(jobId, vertexId, subtasksAllAccumulatorsInfoCallback);
+
+            // then
+            await(() -> {
+                assertThat(subtasksAllAccumulatorsInfoCallback.result).isNotNull();
+                assertThat(subtasksAllAccumulatorsInfoCallback.result.getSubtasks()).hasSize(1);
+            });
+
+            // given
+            final TestCallback<SubtaskExecutionAttemptAccumulatorsInfo> subtaskExecutionAttemptAccumulatorsInfoCallback = new TestCallback<>();
+
+            // when
+            api.getJobSubtaskAttemptAccumulatorsAsync(jobId, vertexId, 0, 0, subtaskExecutionAttemptAccumulatorsInfoCallback);
+
+            // then
+            await(() -> {
+                assertThat(subtaskExecutionAttemptAccumulatorsInfoCallback.result).isNotNull();
+                assertThat(subtaskExecutionAttemptAccumulatorsInfoCallback.result.getUserAccumulators()).isNotNull();
+            });
+
+            // given
+            final TestCallback<SubtaskExecutionAttemptDetailsInfo> subtaskExecutionAttemptDetailsInfoCallback = new TestCallback<>();
+
+            // when
+            api.getJobSubtaskAttemptDetailsAsync(jobId, vertexId, 0, 0, subtaskExecutionAttemptDetailsInfoCallback);
+
+            // then
+            await(() -> {
+                assertThat(subtaskExecutionAttemptDetailsInfoCallback.result).isNotNull();
+                assertThat(subtaskExecutionAttemptDetailsInfoCallback.result.getStatus()).isEqualTo(SubtaskExecutionAttemptDetailsInfo.StatusEnum.RUNNING);
+            });
+        }
+
+        @Test
+        void shouldCreateSavepoint() throws ApiException {
+            // given
+            final String jobId = getRunningJob().getId();
+
+            final TestCallback<TriggerResponse> triggerSavepointResponseCallback = new TestCallback<>();
+
+            // when
+            api.createJobSavepointAsync(new SavepointTriggerRequestBody().cancelJob(false).targetDirectory("file:///var/tmp"), jobId, triggerSavepointResponseCallback);
+
+            // then
+            await(() -> {
+                assertThat(triggerSavepointResponseCallback.result).isNotNull();
+                assertThat(triggerSavepointResponseCallback.result.getRequestId()).isNotNull();
+            });
+
+            Awaitility.await()
+                    .pollInterval(1, TimeUnit.SECONDS)
+                    .pollDelay(5, TimeUnit.SECONDS)
+                    .atMost(30, TimeUnit.SECONDS)
+                    .untilAsserted(() -> {
+                        // when
+                        final AsynchronousOperationResult asynchronousOperationResult = api.getJobSavepointStatus(jobId, triggerSavepointResponseCallback.result.getRequestId().toString());
+
+                        // then
+                        assertThat(asynchronousOperationResult).isNotNull();
+                        dumpAsJson(asynchronousOperationResult);
+                        assertThat(asynchronousOperationResult.getStatus().getId()).isEqualTo(QueueStatus.IdEnum.COMPLETED);
+                    });
+
+            // given
+            final TestCallback<AsynchronousOperationResult> asynchronousOperationResultCallback = new TestCallback<>();
+
+            // when
+            api.getJobSavepointStatusAsync(jobId, triggerSavepointResponseCallback.result.getRequestId().toString(), asynchronousOperationResultCallback);
+
+            // then
+            await(() -> {
+                assertThat(asynchronousOperationResultCallback.result).isNotNull();
+                assertThat(asynchronousOperationResultCallback.result.getStatus().getId()).isEqualTo(QueueStatus.IdEnum.COMPLETED);
+            });
+        }
+
+        @Test
+        void shouldRescaleJob() throws ApiException {
+            // given
+            final String jobId = getRunningJob().getId();
+
+            final TestCallback<TriggerResponse> triggerRescalingResponseCallback = new TestCallback<>();
+
+            // when
+            api.triggerJobRescalingAsync(jobId, 2, triggerRescalingResponseCallback);
+
+            // then
+            await(() -> {
+                assertThat(triggerRescalingResponseCallback.result).isNotNull();
+                assertThat(triggerRescalingResponseCallback.result.getRequestId()).isNotNull();
+            });
+
+            Awaitility.await()
+                    .pollInterval(1, TimeUnit.SECONDS)
+                    .pollDelay(5, TimeUnit.SECONDS)
+                    .atMost(30, TimeUnit.SECONDS)
+                    .untilAsserted(() -> {
+                        // when
+                        final AsynchronousOperationResult asynchronousOperationResult = api.getJobRescalingStatus(jobId, triggerRescalingResponseCallback.result.getRequestId().toString());
+
+                        // then
+                        assertThat(asynchronousOperationResult).isNotNull();
+                        dumpAsJson(asynchronousOperationResult);
+                        assertThat(asynchronousOperationResult.getStatus().getId()).isEqualTo(QueueStatus.IdEnum.COMPLETED);
+                    });
+
+            // given
+            final TestCallback<AsynchronousOperationResult> asynchronousOperationResultCallback = new TestCallback<>();
+
+            // when
+            api.getJobRescalingStatusAsync(jobId, triggerRescalingResponseCallback.result.getRequestId().toString(), asynchronousOperationResultCallback);
+
+            // then
+            await(() -> {
+                assertThat(asynchronousOperationResultCallback.result).isNotNull();
+                assertThat(asynchronousOperationResultCallback.result.getStatus().getId()).isEqualTo(QueueStatus.IdEnum.COMPLETED);
+            });
+        }
+
+        @Test
+        void shouldReturnCheckpointsDetailsAndStatistics() throws ApiException {
+            // given
+            final String jobId = getRunningJob().getId();
+            final JobDetailsInfo jobDetailsInfo = api.getJobDetails(jobId);
+            final String vertexId = jobDetailsInfo.getVertices().get(0).getId().toString();
+
+            final TestCallback<CheckpointConfigInfo> checkpointConfigInfoCallback = new TestCallback<>();
+
+            // when
+            api.getJobCheckpointsConfigAsync(jobId, checkpointConfigInfoCallback);
+
+            // then
+            await(() -> {
+                assertThat(checkpointConfigInfoCallback.result).isNotNull();
+                assertThat(checkpointConfigInfoCallback.result.getInterval()).isEqualTo(60000L);
+            });
+
+            Awaitility.await()
+                    .pollInterval(20, TimeUnit.SECONDS)
+                    .pollDelay(20, TimeUnit.SECONDS)
+                    .atMost(120, TimeUnit.SECONDS)
+                    .untilAsserted(() -> {
+                        // when
+                        final CheckpointingStatistics jobCheckpoints = api.getJobCheckpoints(jobId);
+
+                        // then
+                        assertThat(jobCheckpoints).isNotNull();
+                        dumpAsJson(jobCheckpoints);
+                        assertThat(jobCheckpoints.getHistory()).isNotNull();
+                        assertThat(jobCheckpoints.getHistory().size() > 0).isTrue();
+                    });
+
+            // given
+            final TestCallback<CheckpointingStatistics> jobCheckpointsCallback = new TestCallback<>();
+
+            // when
+            api.getJobCheckpointsAsync(jobId, jobCheckpointsCallback);
+
+            // then
+            await(() -> {
+                assertThat(jobCheckpointsCallback.result).isNotNull();
+                assertThat(jobCheckpointsCallback.result.getHistory()).isNotNull();
+                assertThat(jobCheckpointsCallback.result.getHistory().size() > 0).isTrue();
+            });
+
+            // given
+            final Integer checkpointId = jobCheckpointsCallback.result.getHistory().get(0).getId();
+
+            final TestCallback<CheckpointStatistics> jobCheckpointDetailsCallback = new TestCallback<>();
+
+            // when
+            api.getJobCheckpointDetailsAsync(jobId, checkpointId, jobCheckpointDetailsCallback);
+
+            // then
+            await(() -> {
+                assertThat(jobCheckpointDetailsCallback.result).isNotNull();
+                assertThat(jobCheckpointDetailsCallback.result.getStatus().getValue()).isEqualTo(CheckpointStatistics.StatusEnum.COMPLETED.getValue());
+            });
+
+            // given
+            final TestCallback<TaskCheckpointStatisticsWithSubtaskDetails> jobCheckpointStatisticsCallback = new TestCallback<>();
+
+            // when
+            api.getJobCheckpointStatisticsAsync(jobId, checkpointId, vertexId, jobCheckpointStatisticsCallback);
+
+            // then
+            await(() -> {
+                assertThat(jobCheckpointStatisticsCallback.result).isNotNull();
+                assertThat(jobCheckpointStatisticsCallback.result.getStatus().getValue()).isEqualTo(CheckpointStatistics.StatusEnum.COMPLETED.getValue());
+            });
         }
     }
 
@@ -610,7 +1164,7 @@ public class FlinkClientIT {
         @Test
         void shouldReturnMetrics() throws ApiException {
             // when
-            Object metrics = api.getJobManagerMetrics("Status.JVM.CPU.Time");
+            final Object metrics = api.getJobManagerMetrics("Status.JVM.CPU.Time");
 
             // then
             assertThat(metrics).isNotNull();
@@ -621,7 +1175,17 @@ public class FlinkClientIT {
     @Nested
     class JobManagerAsync {
         @Test
-        void shouldReturnMetrics() {
+        void shouldReturnMetrics() throws ApiException {
+            // given
+            final TestCallback<Object> metricsCallback = new TestCallback<>();
+
+            // when
+            api.getJobManagerMetricsAsync("Status.JVM.CPU.Time", metricsCallback);
+
+            // then
+            await(() -> {
+                assertThat(metricsCallback.result).isNotNull();
+            });
         }
     }
 
@@ -630,33 +1194,33 @@ public class FlinkClientIT {
         @Test
         void shouldReturnMetrics() throws ApiException {
             // when
-            TaskManagersInfo taskManagerInfo = api.getTaskManagersOverview();
+            final TaskManagersInfo taskManagersInfo = api.getTaskManagersOverview();
 
             // then
-            assertThat(taskManagerInfo).isNotNull();
-            dumpAsJson(taskManagerInfo);
-            assertThat(taskManagerInfo.getTaskmanagers()).isNotNull();
-            assertThat(taskManagerInfo.getTaskmanagers()).hasSize(1);
-            final String taskManagerId = taskManagerInfo.getTaskmanagers().get(0).getId().toString();
+            assertThat(taskManagersInfo).isNotNull();
+            dumpAsJson(taskManagersInfo);
+            verifyTaskManagersInfo(taskManagersInfo);
 
-            // and when
-            TaskManagerDetailsInfo taskManagerDetails = api.getTaskManagerDetails(taskManagerId);
+            // given
+            final String taskManagerId = taskManagersInfo.getTaskmanagers().get(0).getId().toString();
+
+            // when
+            final TaskManagerDetailsInfo taskManagerDetails = api.getTaskManagerDetails(taskManagerId);
 
             // then
             assertThat(taskManagerDetails).isNotNull();
             dumpAsJson(taskManagerDetails);
-            assertThat(taskManagerDetails.getMetrics()).isNotNull();
-            assertThat(taskManagerDetails.getMetrics().getHeapMax()).isGreaterThan(0);
+            verifyTaskManagerDetailsInfo(taskManagerDetails);
 
-            // and when
-            Object metrics = api.getTaskManagerMetrics(taskManagerId, "Status.JVM.CPU.Time");
+            // when
+            final Object metrics = api.getTaskManagerMetrics(taskManagerId, "Status.JVM.CPU.Time");
 
             // then
             assertThat(metrics).isNotNull();
             dumpAsJson(metrics);
 
-            // and when
-            Object aggregatedMetrics = api.getTaskManagerAggregatedMetrics("Status.JVM.CPU.Time", "sum", taskManagerId);
+            // when
+            final Object aggregatedMetrics = api.getTaskManagerAggregatedMetrics("Status.JVM.CPU.Time", "sum", taskManagerId);
 
             // then
             assertThat(aggregatedMetrics).isNotNull();
@@ -667,7 +1231,53 @@ public class FlinkClientIT {
     @Nested
     class TaskManagerAsync {
         @Test
-        void shouldReturnMetrics() {
+        void shouldReturnMetrics() throws ApiException {
+            // given
+            final TestCallback<TaskManagersInfo> taskManagersInfoCallback = new TestCallback<>();
+
+            // when
+            api.getTaskManagersOverviewAsync(taskManagersInfoCallback);
+
+            // then
+            await(() -> {
+                assertThat(taskManagersInfoCallback.result).isNotNull();
+                verifyTaskManagersInfo(taskManagersInfoCallback.result);
+            });
+
+            // given
+            final String taskManagerId = taskManagersInfoCallback.result.getTaskmanagers().get(0).getId().toString();
+            final TestCallback<TaskManagerDetailsInfo> taskManagerDetailsInfoCallback = new TestCallback<>();
+
+            // when
+            api.getTaskManagerDetailsAsync(taskManagerId, taskManagerDetailsInfoCallback);
+
+            // then
+            await(() -> {
+                assertThat(taskManagerDetailsInfoCallback.result).isNotNull();
+                verifyTaskManagerDetailsInfo(taskManagerDetailsInfoCallback.result);
+            });
+
+            // given
+            final TestCallback<Object> metricsCallback = new TestCallback<>();
+
+            // when
+            api.getTaskManagerMetricsAsync(taskManagerId, "Status.JVM.CPU.Time", metricsCallback);
+
+            // then
+            await(() -> {
+                assertThat(metricsCallback.result).isNotNull();
+            });
+
+            // given
+            final TestCallback<Object> aggregatedMetricsCallback = new TestCallback<>();
+
+            // when
+            api.getTaskManagerAggregatedMetricsAsync("Status.JVM.CPU.Time", "sum", taskManagerId, aggregatedMetricsCallback);
+
+            // then
+            await(() -> {
+                assertThat(aggregatedMetricsCallback.result).isNotNull();
+            });
         }
     }
 }
