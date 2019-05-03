@@ -1,11 +1,11 @@
 openapi: "3.0.0"
 info:
-  title: Flink REST API
-  version: 1.0.0-alpha
+  title: Flink Client
+  version: 1.0.0
 basePath: /v1
 tags:
   - name: flink
-    description: Flink REST API
+    description: Flink Client
 components:
   schemas:
     DashboardConfiguration:
@@ -155,7 +155,7 @@ components:
     JobDetailsInfo:
       properties:
         jid:
-          type: object
+          type: string
         name:
           type: string
         isStoppable:
@@ -201,7 +201,7 @@ components:
     JobDetailsInfoJobPlan:
       properties:
         jid:
-          type: object
+          type: string
         name:
           type: string
         nodes:
@@ -212,7 +212,7 @@ components:
     JobDetailsInfoNode:
       properties:
         id:
-          type: object
+          type: string
         parallelism:
           type: integer
         operator:
@@ -226,7 +226,7 @@ components:
     JobDetailsInfoJobVertexDetailsInfo:
       properties:
         id:
-          type: object
+          type: string
         name:
           type: string
         parallelism:
@@ -624,7 +624,7 @@ components:
     TriggerResponse:
         properties:
           request-id:
-            type: object
+            type: string
     AsynchronousOperationResult:
         properties:
           status:
@@ -641,7 +641,7 @@ components:
     JobVertexDetailsInfo:
         properties:
           id:
-            type: object
+            type: string
           name:
             type: string
           parallelism:
@@ -734,7 +734,7 @@ components:
     SubtasksAllAccumulatorsInfo:
       properties:
         id:
-          type: object
+          type: string
         parallelism:
           type: integer
         subtasks:
@@ -825,7 +825,7 @@ components:
     JobVertexTaskManagersInfo:
       properties:
         id:
-          type: object
+          type: string
         name:
           type: string
         now:
@@ -898,7 +898,7 @@ components:
     TaskManagerInfo:
       properties:
         id:
-          type: object
+          type: string
         path:
           type: string
         dataPort:
@@ -925,7 +925,7 @@ components:
     TaskManagerDetailsInfo:
       properties:
         id:
-          type: object
+          type: string
         path:
           type: string
         dataPort:

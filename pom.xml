@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.nextbreakpoint</groupId>
     <artifactId>com.nextbreakpoint.flinkclient</artifactId>
-    <version>1.0.1-alpha</version>
+    <version>1.0.1</version>
     <packaging>jar</packaging>
     <description>Java client for managing and monitoring Apache Flink via the Monitoring REST API</description>
     <name>com.nextbreakpoint.flinkclient</name>
@@ -32,7 +32,11 @@
         <maven.compiler.target>8</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <junit.version>4.12</junit.version>
+        <junit5jupiter.version>5.4.2</junit5jupiter.version>
+        <junit5platform.version>1.4.2</junit5platform.version>
+        <assertj.version>3.9.0</assertj.version>
+        <mockito.version>2.15.0</mockito.version>
+        <awaitility.version>3.1.6</awaitility.version>
         <gson.version>2.8.5</gson.version>
         <okhttp.version>2.7.5</okhttp.version>
         <gson-fire.version>1.8.3</gson-fire.version>
@@ -49,14 +53,16 @@
         <maven-compiler-plugin.version>3.8.0</maven-compiler-plugin.version>
         <maven-shade-plugin.version>3.2.1</maven-shade-plugin.version>
         <maven-surefire-plugin.version>2.22.1</maven-surefire-plugin.version>
+        <maven-failsafe-plugin.version>2.22.1</maven-failsafe-plugin.version>
         <maven-toolchains-plugin.version>1.1</maven-toolchains-plugin.version>
         <maven-clean-plugin.version>3.1.0</maven-clean-plugin.version>
         <build-helper-maven-plugin.version>3.0.0</build-helper-maven-plugin.version>
         <maven-dependency-plugin.version>3.1.1</maven-dependency-plugin.version>
         <maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
-        <swagger-codegen-maven-plugin.version>3.0.7</swagger-codegen-maven-plugin.version>
+        <swagger-codegen-maven-plugin.version>3.0.8</swagger-codegen-maven-plugin.version>
         <nexus-staging-maven-plugin.version>1.6.7</nexus-staging-maven-plugin.version>
         <github-release-plugin.version>1.1.1</github-release-plugin.version>
+        <docker-maven-plugin.version>0.30.0</docker-maven-plugin.version>
         <twitter-maven-plugin.version>1.0.1</twitter-maven-plugin.version>
         <nexus.host>https://oss.sonatype.org</nexus.host>
         <nexus.url>https://oss.sonatype.org/content/repositories/snapshots</nexus.url>
@@ -100,9 +106,33 @@
             <version>${threetenbp.version}</version>
         </dependency>
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>${junit.version}</version>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <version>${junit5jupiter.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.platform</groupId>
+            <artifactId>junit-platform-runner</artifactId>
+            <version>${junit5platform.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <version>${assertj.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>${mockito.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.awaitility</groupId>
+            <artifactId>awaitility</artifactId>
+            <version>${awaitility.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -203,8 +233,27 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>${maven-surefire-plugin.version}</version>
                 <configuration>
-                    <parallel>none</parallel>
-                    <forkCount>0</forkCount>
+                    <includes>
+                        <include>**/*Test.java</include>
+                    </includes>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <version>${maven-failsafe-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>integration-test</goal>
+                            <goal>verify</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <includes>
+                        <include>**/*IT.java</include>
+                    </includes>
                 </configuration>
             </plugin>
             <plugin>
@@ -229,6 +278,118 @@
                                 <sourceFolder>src/main/java</sourceFolder>
                             </configOptions>
                             <output>${project.basedir}/generated</output>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>io.fabric8</groupId>
+                <artifactId>docker-maven-plugin</artifactId>
+                <version>${docker-maven-plugin.version}</version>
+                <configuration>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>start-integration-test</id>
+                        <phase>pre-integration-test</phase>
+                        <goals>
+                            <goal>start</goal>
+                        </goals>
+                        <configuration>
+                            <showLogs>false</showLogs>
+                            <images>
+                                <image>
+                                    <name>nextbreakpoint/flink:1.7.2-1</name>
+                                    <alias>flink-jobmanager</alias>
+                                    <run>
+                                        <ports>
+                                            <port>8081:8081</port>
+                                            <port>6123</port>
+                                            <port>6124</port>
+                                            <port>6125</port>
+                                        </ports>
+                                        <entrypoint>
+                                            <exec>
+                                                <arg>bash</arg>
+                                                <arg>/custom_entrypoint.sh</arg>
+                                            </exec>
+                                        </entrypoint>
+                                        <cmd>
+                                            <exec>jobmanager</exec>
+                                        </cmd>
+                                        <env>
+                                            <FLINK_JM_MAX_HEAP>512</FLINK_JM_MAX_HEAP>
+                                            <FLINK_TM_MAX_HEAP>1024</FLINK_TM_MAX_HEAP>
+                                            <FLINK_ENVIRONMENT>test</FLINK_ENVIRONMENT>
+                                            <JOB_MANAGER_RPC_ADDRESS>flink-jobmanager</JOB_MANAGER_RPC_ADDRESS>
+                                        </env>
+                                        <network>
+                                            <mode>custom</mode>
+                                            <name>flink-test</name>
+                                            <alias>flink-jobmanager</alias>
+                                        </network>
+                                        <wait>
+                                            <log>Rest endpoint listening at flink-jobmanager:8081</log>
+                                            <time>60000</time>
+                                        </wait>
+                                    </run>
+                                </image>
+                                <image>
+                                    <name>nextbreakpoint/flink:1.7.2-1</name>
+                                    <alias>flink-taskmanager</alias>
+                                    <run>
+                                        <entrypoint>
+                                            <exec>
+                                                <arg>bash</arg>
+                                                <arg>/custom_entrypoint.sh</arg>
+                                            </exec>
+                                        </entrypoint>
+                                        <cmd>
+                                            <exec>taskmanager</exec>
+                                        </cmd>
+                                        <env>
+                                            <FLINK_JM_MAX_HEAP>512</FLINK_JM_MAX_HEAP>
+                                            <FLINK_TM_MAX_HEAP>1024</FLINK_TM_MAX_HEAP>
+                                            <FLINK_ENVIRONMENT>test</FLINK_ENVIRONMENT>
+                                            <JOB_MANAGER_RPC_ADDRESS>flink-jobmanager</JOB_MANAGER_RPC_ADDRESS>
+                                            <TASK_MANAGER_NUMBER_OF_TASK_SLOTS>2</TASK_MANAGER_NUMBER_OF_TASK_SLOTS>
+                                        </env>
+                                        <volumes>
+                                            <bind>
+                                                <volume>${project.basedir}/tmp:/tmp/output</volume>
+                                            </bind>
+                                        </volumes>
+                                        <network>
+                                            <mode>custom</mode>
+                                            <name>flink-test</name>
+                                            <alias>flink-taskmanager</alias>
+                                        </network>
+                                        <wait>
+                                            <log>Successful registration</log>
+                                            <time>60000</time>
+                                        </wait>
+                                    </run>
+                                </image>
+                            </images>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>stop-integration-test</id>
+                        <phase>post-integration-test</phase>
+                        <goals>
+                            <goal>stop</goal>
+                        </goals>
+                        <configuration>
+                            <images>
+                                <image>
+                                    <name>nextbreakpoint/flink:1.7.2-1</name>
+                                    <alias>flink-taskmanager</alias>
+                                </image>
+                                <image>
+                                    <name>nextbreakpoint/flink:1.7.2-1</name>
+                                    <alias>flink-jobmanager</alias>
+                                </image>
+                            </images>
                         </configuration>
                     </execution>
                 </executions>
