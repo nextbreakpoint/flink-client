@@ -40,19 +40,30 @@ public class FlinkClientIT {
     private void await(ThrowingRunnable throwingRunnable) {
         Awaitility.await()
                 .pollInterval(1, TimeUnit.SECONDS)
-                .pollDelay(1, TimeUnit.SECONDS)
-                .atMost(5, TimeUnit.SECONDS)
+                .pollDelay(2, TimeUnit.SECONDS)
+                .atMost(20, TimeUnit.SECONDS)
                 .untilAsserted(throwingRunnable);
     }
 
     private class TestCallback<T> implements ApiCallback<T> {
+        private final boolean logException;
         volatile ApiException exception;
         volatile T result;
         volatile boolean completed;
 
+        public TestCallback() {
+            this(true);
+        }
+
+        public TestCallback(boolean logException) {
+            this.logException = logException;
+        }
+
         @Override
         public void onFailure(ApiException e, int statusCode, Map<String, List<String>> responseHeaders) {
-            e.printStackTrace();
+            if (logException) {
+                e.printStackTrace();
+            }
             this.exception = e;
             completed = true;
         }
@@ -104,7 +115,7 @@ public class FlinkClientIT {
         final JarListInfo jarListInfo = api.listJars();
         assertThat(jarListInfo).isNotNull();
         dumpAsJson(jarListInfo);
-        final TestCallback<JarRunResponseBody> callback = new TestCallback<>();
+        final TestCallback<JarRunResponseBody> callback = new TestCallback<>(false);
         api.runJarAsync(jarListInfo.getFiles().get(0).getId(), true, null, "--BUCKET_BASE_PATH file:///var/tmp", null, "com.nextbreakpoint.flink.jobs.TestJob", null, callback);
         await(() -> {
             assertThat(callback.result).isNotNull();
@@ -118,7 +129,7 @@ public class FlinkClientIT {
         dumpAsJson(statusOverview);
         statusOverview.getJobs().forEach(jobIdWithStatus -> {
             try {
-                final TestCallback<Void> callback = new TestCallback<>();
+                final TestCallback<Void> callback = new TestCallback<>(false);
                 api.terminateJobAsync(jobIdWithStatus.getId(), "cancel", callback);
                 await(() -> {
                     assertThat(callback.completed).isTrue();
@@ -443,17 +454,15 @@ public class FlinkClientIT {
         }
 
         @Test
-        void shouldReturnJobsMetrics() throws ApiException {
+        void shouldReturnJobsDetailsAndOthers() throws ApiException {
             // when
-            final Object jobsMetrics = api.getJobsMetrics("numberOfFailedCheckpoints", "sum", null);
+            final JobIdsWithStatusOverview jobIdsWithStatusOverview = api.getJobs();
 
             // then
-            assertThat(jobsMetrics).isNotNull();
-            dumpAsJson(jobsMetrics);
-        }
+            assertThat(jobIdsWithStatusOverview).isNotNull();
+            dumpAsJson(jobIdsWithStatusOverview);
+            verifyJobIdWithStatusOverview(jobIdsWithStatusOverview);
 
-        @Test
-        void shouldReturnJobsDetails() throws ApiException {
             // when
             final MultipleJobsDetails multipleJobsDetails = api.getJobsOverview();
 
@@ -461,18 +470,13 @@ public class FlinkClientIT {
             assertThat(multipleJobsDetails).isNotNull();
             dumpAsJson(multipleJobsDetails);
             verifyMultipleJobsDetails(multipleJobsDetails);
-        }
 
-        @Test
-        void shouldReturnJobs() throws ApiException {
             // when
-            final JobIdsWithStatusOverview jobIdsWithStatusOverview = api.getJobs();
+            final Object jobsMetrics = api.getJobsMetrics("numberOfFailedCheckpoints", "sum", null);
 
             // then
-            assertThat(jobIdsWithStatusOverview).isNotNull();
-            dumpAsJson(jobIdsWithStatusOverview);
-
-            verifyJobIdWithStatusOverview(jobIdsWithStatusOverview);
+            assertThat(jobsMetrics).isNotNull();
+            dumpAsJson(jobsMetrics);
         }
 
         @Test
@@ -665,6 +669,22 @@ public class FlinkClientIT {
         void shouldCreateSavepoint() throws ApiException {
             // given
             final String jobId = getRunningJob().getId();
+            final JobDetailsInfo jobDetailsInfo = api.getJobDetails(jobId);
+            final String vertexId = jobDetailsInfo.getVertices().get(0).getId().toString();
+
+            Awaitility.await()
+                    .pollInterval(5, TimeUnit.SECONDS)
+                    .pollDelay(10, TimeUnit.SECONDS)
+                    .atMost(60, TimeUnit.SECONDS)
+                    .untilAsserted(() -> {
+                        // when
+                        final SubtaskExecutionAttemptDetailsInfo subtaskExecutionAttemptDetailsInfo = api.getJobSubtaskDetails(jobId, vertexId, 0);
+
+                        // then
+                        assertThat(subtaskExecutionAttemptDetailsInfo).isNotNull();
+                        dumpAsJson(subtaskExecutionAttemptDetailsInfo);
+                        assertThat(subtaskExecutionAttemptDetailsInfo.getStatus()).isEqualTo(SubtaskExecutionAttemptDetailsInfo.StatusEnum.RUNNING);
+                    });
 
             // when
             final TriggerResponse triggerSavepointResponse = api.createJobSavepoint(new SavepointTriggerRequestBody().cancelJob(false).targetDirectory("file:///var/tmp"), jobId);
@@ -818,46 +838,40 @@ public class FlinkClientIT {
         }
 
         @Test
-        void shouldReturnJobsMetrics() throws ApiException {
+        void shouldReturnJobsDetailsAndOthers() throws ApiException {
             // given
-            final TestCallback<Object> callback = new TestCallback<>();
+            final TestCallback<JobIdsWithStatusOverview> jobIdsWithStatusOverviewCallback = new TestCallback<>();
 
             // when
-            api.getJobsMetricsAsync("numberOfFailedCheckpoints", "sum", null, callback);
+            api.getJobsAsync(jobIdsWithStatusOverviewCallback);
 
             // then
             await(() -> {
-                assertThat(callback.result).isNotNull();
+                assertThat(jobIdsWithStatusOverviewCallback.result).isNotNull();
+                verifyJobIdWithStatusOverview(jobIdsWithStatusOverviewCallback.result);
             });
-        }
 
-        @Test
-        void shouldReturnJobsDetails() throws ApiException {
             // given
-            final TestCallback<MultipleJobsDetails> callback = new TestCallback<>();
+            final TestCallback<MultipleJobsDetails> multipleJobsDetailsCallback = new TestCallback<>();
 
             // when
-            api.getJobsOverviewAsync(callback);
+            api.getJobsOverviewAsync(multipleJobsDetailsCallback);
 
             // then
             await(() -> {
-                assertThat(callback.result).isNotNull();
-                verifyMultipleJobsDetails(callback.result);
+                assertThat(multipleJobsDetailsCallback.result).isNotNull();
+                verifyMultipleJobsDetails(multipleJobsDetailsCallback.result);
             });
-        }
 
-        @Test
-        void shouldReturnJobs() throws ApiException {
             // given
-            final TestCallback<JobIdsWithStatusOverview> callback = new TestCallback<>();
+            final TestCallback<Object> jobsMetricsCallback = new TestCallback<>();
 
             // when
-            api.getJobsAsync(callback);
+            api.getJobsMetricsAsync("numberOfFailedCheckpoints", "sum", null, jobsMetricsCallback);
 
             // then
             await(() -> {
-                assertThat(callback.result).isNotNull();
-                verifyJobIdWithStatusOverview(callback.result);
+                assertThat(jobsMetricsCallback.result).isNotNull();
             });
         }
 
@@ -1136,6 +1150,22 @@ public class FlinkClientIT {
         void shouldCreateSavepoint() throws ApiException {
             // given
             final String jobId = getRunningJob().getId();
+            final JobDetailsInfo jobDetailsInfo = api.getJobDetails(jobId);
+            final String vertexId = jobDetailsInfo.getVertices().get(0).getId().toString();
+
+            Awaitility.await()
+                    .pollInterval(5, TimeUnit.SECONDS)
+                    .pollDelay(10, TimeUnit.SECONDS)
+                    .atMost(60, TimeUnit.SECONDS)
+                    .untilAsserted(() -> {
+                        // when
+                        final SubtaskExecutionAttemptDetailsInfo subtaskExecutionAttemptDetailsInfo = api.getJobSubtaskDetails(jobId, vertexId, 0);
+
+                        // then
+                        assertThat(subtaskExecutionAttemptDetailsInfo).isNotNull();
+                        dumpAsJson(subtaskExecutionAttemptDetailsInfo);
+                        assertThat(subtaskExecutionAttemptDetailsInfo.getStatus()).isEqualTo(SubtaskExecutionAttemptDetailsInfo.StatusEnum.RUNNING);
+                    });
 
             final TestCallback<TriggerResponse> triggerSavepointResponseCallback = new TestCallback<>();
 
