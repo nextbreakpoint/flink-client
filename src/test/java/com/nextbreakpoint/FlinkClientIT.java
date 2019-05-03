@@ -670,7 +670,7 @@ public class FlinkClientIT {
             // given
             final String jobId = getRunningJob().getId();
             final JobDetailsInfo jobDetailsInfo = api.getJobDetails(jobId);
-            final String vertexId = jobDetailsInfo.getVertices().get(0).getId().toString();
+            final String vertexId = jobDetailsInfo.getVertices().get(0).getId();
 
             Awaitility.await()
                     .pollInterval(5, TimeUnit.SECONDS)
@@ -700,7 +700,7 @@ public class FlinkClientIT {
                     .atMost(30, TimeUnit.SECONDS)
                     .untilAsserted(() -> {
                         // when
-                        final AsynchronousOperationResult asynchronousOperationResult = api.getJobSavepointStatus(jobId, triggerSavepointResponse.getRequestId().toString());
+                        final AsynchronousOperationResult asynchronousOperationResult = api.getJobSavepointStatus(jobId, triggerSavepointResponse.getRequestId());
 
                         // then
                         assertThat(asynchronousOperationResult).isNotNull();
@@ -736,7 +736,7 @@ public class FlinkClientIT {
                     .atMost(30, TimeUnit.SECONDS)
                     .untilAsserted(() -> {
                         // when
-                        final AsynchronousOperationResult asynchronousOperationResult = api.getSavepointDisposalStatus(triggerSavepointDisposalResponse.getRequestId().toString());
+                        final AsynchronousOperationResult asynchronousOperationResult = api.getSavepointDisposalStatus(triggerSavepointDisposalResponse.getRequestId());
 
                         // then
                         assertThat(asynchronousOperationResult).isNotNull();
@@ -764,7 +764,7 @@ public class FlinkClientIT {
                     .atMost(30, TimeUnit.SECONDS)
                     .untilAsserted(() -> {
                         // when
-                        final AsynchronousOperationResult asynchronousOperationResult = api.getJobRescalingStatus(jobId, triggerRescalingResponse.getRequestId().toString());
+                        final AsynchronousOperationResult asynchronousOperationResult = api.getJobRescalingStatus(jobId, triggerRescalingResponse.getRequestId());
 
                         // then
                         assertThat(asynchronousOperationResult).isNotNull();
@@ -778,7 +778,7 @@ public class FlinkClientIT {
             // given
             final String jobId = getRunningJob().getId();
             final JobDetailsInfo jobDetailsInfo = api.getJobDetails(jobId);
-            final String vertexId = jobDetailsInfo.getVertices().get(0).getId().toString();
+            final String vertexId = jobDetailsInfo.getVertices().get(0).getId();
 
             // when
             final CheckpointConfigInfo checkpointConfigInfo = api.getJobCheckpointsConfig(jobId);
@@ -982,7 +982,7 @@ public class FlinkClientIT {
             // given
             final String jobId = getRunningJob().getId();
             final JobDetailsInfo jobDetailsInfo = api.getJobDetails(jobId);
-            final String vertexid = jobDetailsInfo.getVertices().get(0).getId().toString();
+            final String vertexid = jobDetailsInfo.getVertices().get(0).getId();
 
             final TestCallback<Object> jobTaskMetricsCallback = new TestCallback<>();
 
@@ -1048,7 +1048,7 @@ public class FlinkClientIT {
             // given
             final String jobId = getRunningJob().getId();
             final JobDetailsInfo jobDetailsInfo = api.getJobDetails(jobId);
-            final String vertexId = jobDetailsInfo.getVertices().get(0).getId().toString();
+            final String vertexId = jobDetailsInfo.getVertices().get(0).getId();
 
             Awaitility.await()
                     .pollInterval(1, TimeUnit.SECONDS)
@@ -1151,7 +1151,7 @@ public class FlinkClientIT {
             // given
             final String jobId = getRunningJob().getId();
             final JobDetailsInfo jobDetailsInfo = api.getJobDetails(jobId);
-            final String vertexId = jobDetailsInfo.getVertices().get(0).getId().toString();
+            final String vertexId = jobDetailsInfo.getVertices().get(0).getId();
 
             Awaitility.await()
                     .pollInterval(5, TimeUnit.SECONDS)
@@ -1184,7 +1184,7 @@ public class FlinkClientIT {
                     .atMost(30, TimeUnit.SECONDS)
                     .untilAsserted(() -> {
                         // when
-                        final AsynchronousOperationResult asynchronousOperationResult = api.getJobSavepointStatus(jobId, triggerSavepointResponseCallback.result.getRequestId().toString());
+                        final AsynchronousOperationResult asynchronousOperationResult = api.getJobSavepointStatus(jobId, triggerSavepointResponseCallback.result.getRequestId());
 
                         // then
                         assertThat(asynchronousOperationResult).isNotNull();
@@ -1206,7 +1206,7 @@ public class FlinkClientIT {
             final TestCallback<AsynchronousOperationResult> savepointAsynchronousOperationResultCallback = new TestCallback<>();
 
             // when
-            api.getJobSavepointStatusAsync(jobId, triggerSavepointResponseCallback.result.getRequestId().toString(), savepointAsynchronousOperationResultCallback);
+            api.getJobSavepointStatusAsync(jobId, triggerSavepointResponseCallback.result.getRequestId(), savepointAsynchronousOperationResultCallback);
 
             // then
             await(() -> {
@@ -1235,7 +1235,7 @@ public class FlinkClientIT {
                     .atMost(30, TimeUnit.SECONDS)
                     .untilAsserted(() -> {
                         // when
-                        final AsynchronousOperationResult asynchronousOperationResult = api.getSavepointDisposalStatus(triggerSavepointDisposalResponseCallback.result.getRequestId().toString());
+                        final AsynchronousOperationResult asynchronousOperationResult = api.getSavepointDisposalStatus(triggerSavepointDisposalResponseCallback.result.getRequestId());
 
                         // then
                         assertThat(asynchronousOperationResult).isNotNull();
@@ -1247,7 +1247,7 @@ public class FlinkClientIT {
             final TestCallback<AsynchronousOperationResult> savepointDisposalAsynchronousOperationResultCallback = new TestCallback<>();
 
             // when
-            api.getSavepointDisposalStatusAsync(triggerSavepointDisposalResponseCallback.result.getRequestId().toString(), savepointDisposalAsynchronousOperationResultCallback);
+            api.getSavepointDisposalStatusAsync(triggerSavepointDisposalResponseCallback.result.getRequestId(), savepointDisposalAsynchronousOperationResultCallback);
 
             // then
             await(() -> {
@@ -1278,7 +1278,7 @@ public class FlinkClientIT {
                     .atMost(30, TimeUnit.SECONDS)
                     .untilAsserted(() -> {
                         // when
-                        final AsynchronousOperationResult asynchronousOperationResult = api.getJobRescalingStatus(jobId, triggerRescalingResponseCallback.result.getRequestId().toString());
+                        final AsynchronousOperationResult asynchronousOperationResult = api.getJobRescalingStatus(jobId, triggerRescalingResponseCallback.result.getRequestId());
 
                         // then
                         assertThat(asynchronousOperationResult).isNotNull();
@@ -1290,7 +1290,7 @@ public class FlinkClientIT {
             final TestCallback<AsynchronousOperationResult> asynchronousOperationResultCallback = new TestCallback<>();
 
             // when
-            api.getJobRescalingStatusAsync(jobId, triggerRescalingResponseCallback.result.getRequestId().toString(), asynchronousOperationResultCallback);
+            api.getJobRescalingStatusAsync(jobId, triggerRescalingResponseCallback.result.getRequestId(), asynchronousOperationResultCallback);
 
             // then
             await(() -> {
@@ -1304,7 +1304,7 @@ public class FlinkClientIT {
             // given
             final String jobId = getRunningJob().getId();
             final JobDetailsInfo jobDetailsInfo = api.getJobDetails(jobId);
-            final String vertexId = jobDetailsInfo.getVertices().get(0).getId().toString();
+            final String vertexId = jobDetailsInfo.getVertices().get(0).getId();
 
             final TestCallback<CheckpointConfigInfo> checkpointConfigInfoCallback = new TestCallback<>();
 
@@ -1442,7 +1442,7 @@ public class FlinkClientIT {
             verifyTaskManagersInfo(taskManagersInfo);
 
             // given
-            final String taskManagerId = taskManagersInfo.getTaskmanagers().get(0).getId().toString();
+            final String taskManagerId = taskManagersInfo.getTaskmanagers().get(0).getId();
 
             // when
             final TaskManagerDetailsInfo taskManagerDetails = api.getTaskManagerDetails(taskManagerId);
@@ -1485,7 +1485,7 @@ public class FlinkClientIT {
             });
 
             // given
-            final String taskManagerId = taskManagersInfoCallback.result.getTaskmanagers().get(0).getId().toString();
+            final String taskManagerId = taskManagersInfoCallback.result.getTaskmanagers().get(0).getId();
             final TestCallback<TaskManagerDetailsInfo> taskManagerDetailsInfoCallback = new TestCallback<>();
 
             // when
