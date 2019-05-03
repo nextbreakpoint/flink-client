@@ -32,11 +32,11 @@
         <maven.compiler.target>8</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <junit5jupiter.version>5.0.2</junit5jupiter.version>
-        <junit5platform.version>1.0.2</junit5platform.version>
+        <junit5jupiter.version>5.4.2</junit5jupiter.version>
+        <junit5platform.version>1.4.2</junit5platform.version>
         <assertj.version>3.9.0</assertj.version>
         <mockito.version>2.15.0</mockito.version>
-        <awaitility.version>3.1.0</awaitility.version>
+        <awaitility.version>3.1.6</awaitility.version>
         <gson.version>2.8.5</gson.version>
         <okhttp.version>2.7.5</okhttp.version>
         <gson-fire.version>1.8.3</gson-fire.version>
@@ -59,10 +59,10 @@
         <build-helper-maven-plugin.version>3.0.0</build-helper-maven-plugin.version>
         <maven-dependency-plugin.version>3.1.1</maven-dependency-plugin.version>
         <maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
-        <swagger-codegen-maven-plugin.version>3.0.7</swagger-codegen-maven-plugin.version>
+        <swagger-codegen-maven-plugin.version>3.0.8</swagger-codegen-maven-plugin.version>
         <nexus-staging-maven-plugin.version>1.6.7</nexus-staging-maven-plugin.version>
         <github-release-plugin.version>1.1.1</github-release-plugin.version>
-        <docker-maven-plugin.version>0.28.0</docker-maven-plugin.version>
+        <docker-maven-plugin.version>0.30.0</docker-maven-plugin.version>
         <twitter-maven-plugin.version>1.0.1</twitter-maven-plugin.version>
         <nexus.host>https://oss.sonatype.org</nexus.host>
         <nexus.url>https://oss.sonatype.org/content/repositories/snapshots</nexus.url>
@@ -296,7 +296,7 @@
                             <goal>start</goal>
                         </goals>
                         <configuration>
-                            <showLogs>true</showLogs>
+                            <showLogs>false</showLogs>
                             <images>
                                 <image>
                                     <name>nextbreakpoint/flink:1.7.2-1</name>
@@ -370,45 +370,6 @@
                                         </wait>
                                     </run>
                                 </image>
-                                <!--<image>-->
-                                    <!--<name>spoor-flink:${project.version}</name>-->
-                                    <!--<alias>spoor-flink-copy</alias>-->
-                                    <!--<run>-->
-                                        <!--<entrypoint>-->
-                                            <!--<exec>-->
-                                                <!--<arg>/wait-for-it.sh</arg>-->
-                                                <!--<arg>spoor-flink-jobmanager:8081</arg>-->
-                                                <!--<arg>&#45;&#45;timeout=60</arg>-->
-                                                <!--<arg>&#45;&#45;</arg>-->
-                                                <!--<arg>/jobs-entrypoint.sh</arg>-->
-                                            <!--</exec>-->
-                                        <!--</entrypoint>-->
-                                        <!--<env>-->
-                                            <!--<context>copy</context>-->
-                                            <!--<environment>local</environment>-->
-                                            <!--<ALLOW_MULTIPLE_JOBS>true</ALLOW_MULTIPLE_JOBS>-->
-                                            <!--<JOB_MANAGER_RPC_ADDRESS>spoor-flink-jobmanager</JOB_MANAGER_RPC_ADDRESS>-->
-                                            <!--<FLINK_JM_MAX_HEAP>512</FLINK_JM_MAX_HEAP>-->
-                                            <!--<FLINK_TM_MAX_HEAP>4096</FLINK_TM_MAX_HEAP>-->
-                                            <!--<JOB_PARALLELISM>1</JOB_PARALLELISM>-->
-                                            <!--<ACTUAL_FLINK_JOB_CLASS>com.ft.dw.spoor.flink.copy.job.ProcessSpoorCopyDataByUserJob</ACTUAL_FLINK_JOB_CLASS>-->
-                                            <!--<BUCKET_BASE_PATH>file:///tmp/output/</BUCKET_BASE_PATH>-->
-                                        <!--</env>-->
-                                        <!--<network>-->
-                                            <!--<mode>custom</mode>-->
-                                            <!--<name>flink-test</name>-->
-                                            <!--<alias>spoor-flink-copy</alias>-->
-                                        <!--</network>-->
-                                        <!--<dependsOn>-->
-                                            <!--<container>spoor-flink-jobmanager</container>-->
-                                            <!--<container>spoor-flink-taskmanager</container>-->
-                                        <!--</dependsOn>-->
-                                        <!--<wait>-->
-                                            <!--<log>Starting ProcessSpoorCopyDataByUserJob</log>-->
-                                            <!--<time>360000</time>-->
-                                        <!--</wait>-->
-                                    <!--</run>-->
-                                <!--</image>-->
                             </images>
                         </configuration>
                     </execution>
@@ -420,10 +381,6 @@
                         </goals>
                         <configuration>
                             <images>
-                                <!--<image>-->
-                                    <!--<name>spoor-flink:${project.version}</name>-->
-                                    <!--<alias>spoor-flink-bt</alias>-->
-                                <!--</image>-->
                                 <image>
                                     <name>nextbreakpoint/flink:1.7.2-1</name>
                                     <alias>flink-taskmanager</alias>
