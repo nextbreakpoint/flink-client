@@ -1,8 +1,8 @@
 # flink-client
 
-This library provides a Java client for managing and monitoring Apache Flink via the [Monitoring REST API](https://ci.apache.org/projects/flink/flink-docs-stable/monitoring/rest_api.html).
+This library provides a Java client for managing Apache Flink via the [Monitoring REST API](https://ci.apache.org/projects/flink/flink-docs-stable/monitoring/rest_api.html).
 
-The client is generated with [Swagger Codegen](https://swagger.io/tools/swagger-codegen/) from an OpenAPI specification file and it is **currently in alpha version**.
+The client is generated with [Swagger Codegen](https://swagger.io/tools/swagger-codegen/) from an OpenAPI specification file.
 
 ## License
 
@@ -45,14 +45,20 @@ If you are using Maven, add this dependency to your POM:
     <dependency>
         <groupId>com.nextbreakpoint</groupId>
         <artifactId>com.nextbreakpoint.flinkclient</artifactId>
-        <version>1.0.1-alpha</version>
+        <version>1.0.1</version>
     </dependency>        
 
-## Build from source code
+## How to build the library
 
-Checkout the code and build the library using Maven:
+Build the library using Maven:
 
     mvn clean package
+
+## How to run the tests
+
+Run the tests using Maven:
+
+    mvn clean verify
 
 ## Documentation
 
@@ -102,8 +108,9 @@ Terminate a job:
 
     api.terminateJob("f370f5421e5254eed8d6fc6673829c83", "cancel");
 
-For all the remaining operations see documentation of Monitoring REST API or see OpenAPI file (flink-api.yaml).
+For all the remaining operations see documentation of Monitoring REST API or see OpenAPI file (flink-openapi.yaml).
 
 ## Known limitations
 
-The library is missing automated tests, and not all operations have been manually tested.
+The library has integration tests with a code coverage of 90%. Few endpoints don't have tests and not all fields in the responses are currently verified.
+      
