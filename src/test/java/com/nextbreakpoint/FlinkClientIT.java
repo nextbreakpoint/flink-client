@@ -689,9 +689,9 @@ public class FlinkClientIT {
                     });
 
             Awaitility.await()
-                    .pollInterval(1, TimeUnit.SECONDS)
-                    .pollDelay(5, TimeUnit.SECONDS)
-                    .atMost(30, TimeUnit.SECONDS)
+                    .pollInterval(5, TimeUnit.SECONDS)
+                    .pollDelay(10, TimeUnit.SECONDS)
+                    .atMost(60, TimeUnit.SECONDS)
                     .untilAsserted(() -> {
                         final CheckpointingStatistics checkpointingStatistics = api.getJobCheckpoints(jobId);
                         assertThat(checkpointingStatistics.getLatest()).isNotNull();
@@ -1163,9 +1163,9 @@ public class FlinkClientIT {
                     });
 
             Awaitility.await()
-                    .pollInterval(1, TimeUnit.SECONDS)
-                    .pollDelay(5, TimeUnit.SECONDS)
-                    .atMost(30, TimeUnit.SECONDS)
+                    .pollInterval(5, TimeUnit.SECONDS)
+                    .pollDelay(10, TimeUnit.SECONDS)
+                    .atMost(60, TimeUnit.SECONDS)
                     .untilAsserted(() -> {
                         final CheckpointingStatistics checkpointingStatistics = api.getJobCheckpoints(jobId);
                         assertThat(checkpointingStatistics.getLatest()).isNotNull();
