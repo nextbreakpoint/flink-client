@@ -9,4 +9,4 @@ sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubun
 sudo apt-get update -y && sudo apt-get install -y docker-ce
 sudo usermod -aG docker $USER
 
-docker network create flink-test
+sudo docker network create flink-test
