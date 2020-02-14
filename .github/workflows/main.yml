@@ -11,7 +11,5 @@ jobs:
         java-version: 1.8
     - name: Set up Docker
       run: sh pipeline/setup-docker.sh
-    - name: print
-      run: ls -R /usr/lib/jvm
     - name: Build and run tests
       run: mvn -t pipeline/toolchains.xml clean verify
