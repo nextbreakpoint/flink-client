@@ -12,4 +12,4 @@ jobs:
     - name: Set up Docker
       run: sh pipeline/setup-docker.sh
     - name: Build and run tests
-      run: mvn clean verify
+      run: mvn -t pipeline/toolchains.xml clean verify
