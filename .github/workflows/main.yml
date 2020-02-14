@@ -11,5 +11,5 @@ jobs:
         java-version: 1.8
     - name: Set up Docker
       run: sh pipeline/setup-docker.sh
-    - name: Build and run unit tests
+    - name: Build and run tests
       run: mvn clean verify
