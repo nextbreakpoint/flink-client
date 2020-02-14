@@ -11,7 +11,7 @@ Vagrant.configure(2) do |config|
       path: "pipeline/setup-docker.sh",
       privileged: false
     s.vm.provision :shell,
-      path: "pipeline/setup-java.sh",
+      path: "pipeline/setup-tools.sh",
       privileged: false
     s.vm.provider "virtualbox" do |v|
       v.name = "integration"
