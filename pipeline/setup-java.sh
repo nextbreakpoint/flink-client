@@ -3,4 +3,4 @@
 set -x
 set -e
 
-sudo apt-get install -y openjdk-8-jdk maven
+sudo apt-get install -y openjdk-11-jdk maven
