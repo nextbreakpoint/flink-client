@@ -155,7 +155,7 @@
                 <configuration>
                     <toolchains>
                         <jdk>
-                            <version>[11,)</version>
+                            <version>[8,)</version>
                         </jdk>
                     </toolchains>
                 </configuration>
@@ -323,7 +323,7 @@
                                         </network>
                                         <wait>
                                             <log>Rest endpoint listening at flink-jobmanager:8081</log>
-                                            <time>60000</time>
+                                            <time>120000</time>
                                         </wait>
                                     </run>
                                 </image>
@@ -340,11 +340,6 @@
                                             <JOB_MANAGER_RPC_ADDRESS>flink-jobmanager</JOB_MANAGER_RPC_ADDRESS>
                                             <TASK_MANAGER_NUMBER_OF_TASK_SLOTS>2</TASK_MANAGER_NUMBER_OF_TASK_SLOTS>
                                         </env>
-                                        <volumes>
-                                            <bind>
-                                                <volume>${project.basedir}/tmp:/tmp/output</volume>
-                                            </bind>
-                                        </volumes>
                                         <network>
                                             <mode>custom</mode>
                                             <name>flink-test</name>
@@ -352,7 +347,7 @@
                                         </network>
                                         <wait>
                                             <log>Successful registration</log>
-                                            <time>60000</time>
+                                            <time>120000</time>
                                         </wait>
                                     </run>
                                 </image>
