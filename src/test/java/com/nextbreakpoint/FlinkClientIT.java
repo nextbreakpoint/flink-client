@@ -96,10 +96,10 @@ public class FlinkClientIT {
         final JarListInfo jarListInfo = api.listJars();
         assertThat(jarListInfo).isNotNull();
         dumpAsJson(jarListInfo);
-        final JarRunResponseBody response = api.runJar(jarListInfo.getFiles().get(0).getId(), true, null, "--PARALLELISM 1", null, "com.nextbreakpoint.flink.jobs.stream.TestJob", null);
+        final JarRunResponseBody response = api.runJar(jarListInfo.getFiles().get(0).getId(), true, null, "--PARALLELISM 1", null, ENTRY_CLASS, null);
         assertThat(response).isNotNull();
         dumpAsJson(response);
-//        assertThat(response.getJobId()).isNotNull();
+        assertThat(response.getJobid()).isNotNull();
     }
 
     private void terminateAllJobs() throws ApiException {
@@ -122,7 +122,7 @@ public class FlinkClientIT {
         assertThat(jarListInfo).isNotNull();
         dumpAsJson(jarListInfo);
         final TestCallback<JarRunResponseBody> callback = new TestCallback<>(false);
-        api.runJarAsync(jarListInfo.getFiles().get(0).getId(), true, null, "--PARALLELISM 1", null, "com.nextbreakpoint.flink.jobs.stream.TestJob", null, callback);
+        api.runJarAsync(jarListInfo.getFiles().get(0).getId(), true, null, "--PARALLELISM 1", null, ENTRY_CLASS, null, callback);
         await(() -> {
             assertThat(callback.result).isNotNull();
             assertThat(callback.completed).isTrue();
@@ -451,7 +451,7 @@ public class FlinkClientIT {
             final JarFileInfo jarFileInfo = api.listJars().getFiles().get(0);
 
             // when
-            api.showPlanAsync(jarFileInfo.getId(), "--PARALLELISM 1", null, "com.nextbreakpoint.flink.jobs.stream.TestJob", 1, callback);
+            api.showPlanAsync(jarFileInfo.getId(), "--PARALLELISM 1", null, ENTRY_CLASS, 1, callback);
 
             // then
             await(() -> {

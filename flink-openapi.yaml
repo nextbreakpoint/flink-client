@@ -115,8 +115,8 @@ components:
           type: string
     JarRunResponseBody:
       properties:
-        jobId:
-          type: object
+        jobid:
+          type: string
     ClusterConfigurationInfoEntry:
       properties:
         key:
@@ -1610,6 +1610,7 @@ paths:
             type: string
         - name: parallelism
           in: query
+          description: Positive integer value that specifies the desired parallelism
           description: Positive integer value that specifies the desired parallelism
           required: true
           schema:
