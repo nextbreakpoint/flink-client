@@ -340,11 +340,6 @@
                                             <JOB_MANAGER_RPC_ADDRESS>flink-jobmanager</JOB_MANAGER_RPC_ADDRESS>
                                             <TASK_MANAGER_NUMBER_OF_TASK_SLOTS>2</TASK_MANAGER_NUMBER_OF_TASK_SLOTS>
                                         </env>
-                                        <volumes>
-                                            <bind>
-                                                <volume>${project.basedir}/tmp:/tmp/output</volume>
-                                            </bind>
-                                        </volumes>
                                         <network>
                                             <mode>custom</mode>
                                             <name>flink-test</name>
