@@ -115,7 +115,7 @@ components:
           type: string
     JarRunResponseBody:
       properties:
-        plan:
+        jobId:
           type: object
     ClusterConfigurationInfoEntry:
       properties:
