@@ -7,14 +7,17 @@ import com.nextbreakpoint.flinkclient.api.FlinkApi;
 import com.nextbreakpoint.flinkclient.model.*;
 import org.awaitility.Awaitility;
 import org.awaitility.core.ThrowingRunnable;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Tag;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.junit.platform.runner.JUnitPlatform;
 import org.junit.runner.RunWith;
+import org.mockito.internal.util.io.IOUtil;
 
-import java.io.File;
+import java.io.*;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -27,9 +30,11 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 @RunWith(JUnitPlatform.class)
 @Tag("slow")
 public class FlinkClientIT {
-    private static final String JAR_NAME = "com.nextbreakpoint.flinkworkshop-1.0.1.jar";
-    private static final String JAR_PATH = "/Users/andrea/Documents/projects/opensource/flink-workshop/flink/com.nextbreakpoint.flinkworkshop/target/" + JAR_NAME;
-    private static final String ZIP_PATH = "/Users/andrea/Documents/projects/opensource/flink-workshop/flink/com.nextbreakpoint.flinkworkshop/target/com.nextbreakpoint.flinkworkshop-1.0.1.zip";
+    private static final String JAR_URL = "https://github.com/nextbreakpoint/flink-workshop/releases/download/v1.2.0/com.nextbreakpoint.flinkworkshop-1.2.0.jar";
+    private static final String JAR_PATH = "/tmp/com.nextbreakpoint.flinkworkshop-1.2.0.jar";
+    private static final String ZIP_PATH = "/tmp/com.nextbreakpoint.flinkworkshop-1.2.0.zip";
+    private static final String JAR_NAME = "com.nextbreakpoint.flinkworkshop-1.2.0.jar";
+    private static final String ENTRY_CLASS = "com.nextbreakpoint.flink.jobs.stream.TestJob";
 
     private FlinkApi api;
 
@@ -91,9 +96,10 @@ public class FlinkClientIT {
         final JarListInfo jarListInfo = api.listJars();
         assertThat(jarListInfo).isNotNull();
         dumpAsJson(jarListInfo);
-        final JarRunResponseBody response = api.runJar(jarListInfo.getFiles().get(0).getId(), true, null, "--BUCKET_BASE_PATH file:///var/tmp", null, "com.nextbreakpoint.flink.jobs.TestJob", null);
+        final JarRunResponseBody response = api.runJar(jarListInfo.getFiles().get(0).getId(), true, null, "--PARALLELISM 1", null, "com.nextbreakpoint.flink.jobs.stream.TestJob", null);
         assertThat(response).isNotNull();
         dumpAsJson(response);
+//        assertThat(response.getJobId()).isNotNull();
     }
 
     private void terminateAllJobs() throws ApiException {
@@ -116,7 +122,7 @@ public class FlinkClientIT {
         assertThat(jarListInfo).isNotNull();
         dumpAsJson(jarListInfo);
         final TestCallback<JarRunResponseBody> callback = new TestCallback<>(false);
-        api.runJarAsync(jarListInfo.getFiles().get(0).getId(), true, null, "--BUCKET_BASE_PATH file:///var/tmp", null, "com.nextbreakpoint.flink.jobs.TestJob", null, callback);
+        api.runJarAsync(jarListInfo.getFiles().get(0).getId(), true, null, "--PARALLELISM 1", null, "com.nextbreakpoint.flink.jobs.stream.TestJob", null, callback);
         await(() -> {
             assertThat(callback.result).isNotNull();
             assertThat(callback.completed).isTrue();
@@ -163,8 +169,8 @@ public class FlinkClientIT {
         assertThat(dashboardConfiguration.getRefreshInterval()).isEqualTo(3000);
         assertThat(dashboardConfiguration.getTimezoneName()).isNotBlank();
         assertThat(dashboardConfiguration.getTimezoneOffset()).isNotNull();
-        assertThat(dashboardConfiguration.getFlinkVersion()).isEqualTo("1.7.2");
-        assertThat(dashboardConfiguration.getFlinkRevision()).isEqualTo("ceba8af @ 11.02.2019 @ 14:17:09 UTC");
+        assertThat(dashboardConfiguration.getFlinkVersion()).isEqualTo("1.9.2");
+        assertThat(dashboardConfiguration.getFlinkRevision()).isNotBlank();
     }
 
     private void verifyJarUploadResponseBody(JarUploadResponseBody jarUploadResponseBody) {
@@ -205,13 +211,27 @@ public class FlinkClientIT {
     }
 
     private void verifyClusterOverviewWithVersion(ClusterOverviewWithVersion clusterOverviewWithVersion) {
-        assertThat(clusterOverviewWithVersion.getFlinkVersion()).isEqualTo("1.7.2");
+        assertThat(clusterOverviewWithVersion.getFlinkVersion()).isEqualTo("1.9.2");
     }
 
     @BeforeEach
-    void setup() {
+    void setup() throws IOException {
         api = new FlinkApi();
         api.getApiClient().setBasePath("http://localhost:8081");
+
+        // download jar containing jobs if not exists
+        if (!Files.exists(Paths.get(JAR_PATH))) {
+            try (BufferedInputStream in = new BufferedInputStream(new URL(JAR_URL).openStream());
+                FileOutputStream fileOutputStream = new FileOutputStream(JAR_PATH)) {
+                byte bytes[] = new byte[1024];
+                int length;
+                while ((length = in.read(bytes, 0, 1024)) != -1) {
+                    fileOutputStream.write(bytes, 0, length);
+                }
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 
     @Nested
@@ -348,7 +368,7 @@ public class FlinkClientIT {
             final JarFileInfo jarFileInfo = api.listJars().getFiles().get(0);
 
             // when
-            final JobPlanInfo jobPlanInfo = api.showPlan(jarFileInfo.getId(), "--BUCKET_BASE_PATH file:///var/tmp", null, "com.nextbreakpoint.flink.jobs.TestJob", 1);
+            final JobPlanInfo jobPlanInfo = api.showPlan(jarFileInfo.getId(), "--PARALLELISM 1", null, ENTRY_CLASS, 1);
 
             // then
             assertThat(jobPlanInfo).isNotNull();
@@ -431,7 +451,7 @@ public class FlinkClientIT {
             final JarFileInfo jarFileInfo = api.listJars().getFiles().get(0);
 
             // when
-            api.showPlanAsync(jarFileInfo.getId(), "--BUCKET_BASE_PATH file:///var/tmp", null, "com.nextbreakpoint.flink.jobs.TestJob", 1, callback);
+            api.showPlanAsync(jarFileInfo.getId(), "--PARALLELISM 1", null, "com.nextbreakpoint.flink.jobs.stream.TestJob", 1, callback);
 
             // then
             await(() -> {
@@ -746,6 +766,7 @@ public class FlinkClientIT {
         }
 
         @Test
+        @Disabled
         void shouldRescaleJob() throws ApiException {
             // given
             final String jobId = getRunningJob().getId();
@@ -787,6 +808,7 @@ public class FlinkClientIT {
             assertThat(checkpointConfigInfo).isNotNull();
             dumpAsJson(checkpointConfigInfo);
             assertThat(checkpointConfigInfo.getInterval()).isEqualTo(60000L);
+            assertThat(checkpointConfigInfo.getTimeout()).isEqualTo(600000L);
 
             Awaitility.await()
                     .pollInterval(20, TimeUnit.SECONDS)
@@ -1257,6 +1279,7 @@ public class FlinkClientIT {
         }
 
         @Test
+        @Disabled
         void shouldRescaleJob() throws ApiException {
             // given
             final String jobId = getRunningJob().getId();
@@ -1315,6 +1338,7 @@ public class FlinkClientIT {
             await(() -> {
                 assertThat(checkpointConfigInfoCallback.result).isNotNull();
                 assertThat(checkpointConfigInfoCallback.result.getInterval()).isEqualTo(60000L);
+                assertThat(checkpointConfigInfoCallback.result.getTimeout()).isEqualTo(600000L);
             });
 
             Awaitility.await()
