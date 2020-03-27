@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.nextbreakpoint</groupId>
     <artifactId>com.nextbreakpoint.flinkclient</artifactId>
-    <version>1.0.2</version>
+    <version>1.0.3</version>
     <packaging>jar</packaging>
     <description>Java library for managing Apache Flink via the Monitoring REST API</description>
     <name>com.nextbreakpoint.flinkclient</name>
@@ -299,7 +299,7 @@
                             <showLogs>false</showLogs>
                             <images>
                                 <image>
-                                    <name>flink:1.9.2</name>
+                                    <name>flink:1.10.0</name>
                                     <alias>flink-jobmanager</alias>
                                     <run>
                                         <ports>
@@ -328,7 +328,7 @@
                                     </run>
                                 </image>
                                 <image>
-                                    <name>flink:1.9.2</name>
+                                    <name>flink:1.10.0</name>
                                     <alias>flink-taskmanager</alias>
                                     <run>
                                         <cmd>
@@ -363,11 +363,11 @@
                         <configuration>
                             <images>
                                 <image>
-                                    <name>flink:1.9.2</name>
+                                    <name>flink:1.10.0</name>
                                     <alias>flink-taskmanager</alias>
                                 </image>
                                 <image>
-                                    <name>flink:1.9.2</name>
+                                    <name>flink:1.10.0</name>
                                     <alias>flink-jobmanager</alias>
                                 </image>
                             </images>

@@ -30,10 +30,10 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 @RunWith(JUnitPlatform.class)
 @Tag("slow")
 public class FlinkClientIT {
-    private static final String JAR_URL = "https://github.com/nextbreakpoint/flink-workshop/releases/download/v1.2.0/com.nextbreakpoint.flinkworkshop-1.2.0.jar";
-    private static final String JAR_PATH = "/tmp/com.nextbreakpoint.flinkworkshop-1.2.0.jar";
-    private static final String ZIP_PATH = "/tmp/com.nextbreakpoint.flinkworkshop-1.2.0.zip";
-    private static final String JAR_NAME = "com.nextbreakpoint.flinkworkshop-1.2.0.jar";
+    private static final String JAR_URL = "https://github.com/nextbreakpoint/flink-workshop/releases/download/v1.2.3/com.nextbreakpoint.flinkworkshop-1.2.3.jar";
+    private static final String JAR_PATH = "/tmp/com.nextbreakpoint.flinkworkshop-1.2.3.jar";
+    private static final String ZIP_PATH = "/tmp/com.nextbreakpoint.flinkworkshop-1.2.3.zip";
+    private static final String JAR_NAME = "com.nextbreakpoint.flinkworkshop-1.2.3.jar";
     private static final String ENTRY_CLASS = "com.nextbreakpoint.flink.jobs.stream.TestJob";
 
     private FlinkApi api;
@@ -169,7 +169,7 @@ public class FlinkClientIT {
         assertThat(dashboardConfiguration.getRefreshInterval()).isEqualTo(3000);
         assertThat(dashboardConfiguration.getTimezoneName()).isNotBlank();
         assertThat(dashboardConfiguration.getTimezoneOffset()).isNotNull();
-        assertThat(dashboardConfiguration.getFlinkVersion()).isEqualTo("1.9.2");
+        assertThat(dashboardConfiguration.getFlinkVersion()).isEqualTo("1.10.0");
         assertThat(dashboardConfiguration.getFlinkRevision()).isNotBlank();
     }
 
@@ -211,7 +211,7 @@ public class FlinkClientIT {
     }
 
     private void verifyClusterOverviewWithVersion(ClusterOverviewWithVersion clusterOverviewWithVersion) {
-        assertThat(clusterOverviewWithVersion.getFlinkVersion()).isEqualTo("1.9.2");
+        assertThat(clusterOverviewWithVersion.getFlinkVersion()).isEqualTo("1.10.0");
     }
 
     @BeforeEach
