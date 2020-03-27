@@ -323,7 +323,7 @@
                                         </network>
                                         <wait>
                                             <log>Rest endpoint listening at flink-jobmanager:8081</log>
-                                            <time>120000</time>
+                                            <time>180000</time>
                                         </wait>
                                     </run>
                                 </image>
@@ -347,7 +347,7 @@
                                         </network>
                                         <wait>
                                             <log>Successful registration</log>
-                                            <time>120000</time>
+                                            <time>180000</time>
                                         </wait>
                                     </run>
                                 </image>
