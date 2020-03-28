@@ -8,7 +8,7 @@ The client is generated with [Swagger Codegen](https://swagger.io/tools/swagger-
 
 The library is distributed under the terms of BSD 3-Clause License.
 
-    Copyright (c) 2019, Andrea Medeghini
+    Copyright (c) 2019-2020, Andrea Medeghini
     All rights reserved.
     
     Redistribution and use in source and binary forms, with or without
@@ -45,7 +45,7 @@ If you are using Maven, add this dependency to your POM:
     <dependency>
         <groupId>com.nextbreakpoint</groupId>
         <artifactId>com.nextbreakpoint.flinkclient</artifactId>
-        <version>1.0.2</version>
+        <version>1.0.3</version>
     </dependency>        
 
 ## How to build the library
@@ -56,6 +56,10 @@ Build the library using Maven:
 
 ## How to run the tests
 
+Make sure you have Docker installed and create the required bridge network:
+
+    docker network create flink-test 
+ 
 Run the tests using Maven:
 
     mvn clean verify
@@ -110,7 +114,14 @@ Terminate a job:
 
 For all the remaining operations see documentation of Monitoring REST API or see [OpenAPI specification file](https://github.com/nextbreakpoint/flink-client/blob/master/flink-openapi.yaml).
 
+## Flink compatibility
+
+The current version of the library has been tested against Flink 1.10.0, but the library is known to work with older versions.   
+The library is compatible with Flink Monitoring REST API v1, which didn't change for long time (at least since Flink 1.7).
+The library should be compatible with newer versions too, unless a breaking change is introduced in the Flink Monitoring REST API. 
+
 ## Known limitations
 
-The library has integration tests with a code coverage of 90%. Few endpoints don't have tests and not all fields in the responses are currently verified.
+The library has integration tests with a code coverage of 90%. 
+Few endpoints don't have tests and not all fields in the responses are currently verified.
       

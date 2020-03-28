@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.nextbreakpoint</groupId>
     <artifactId>com.nextbreakpoint.flinkclient</artifactId>
-    <version>1.0.2</version>
+    <version>1.0.3</version>
     <packaging>jar</packaging>
     <description>Java library for managing Apache Flink via the Monitoring REST API</description>
     <name>com.nextbreakpoint.flinkclient</name>
@@ -299,7 +299,7 @@
                             <showLogs>false</showLogs>
                             <images>
                                 <image>
-                                    <name>flink:1.9.2</name>
+                                    <name>flink:1.10.0</name>
                                     <alias>flink-jobmanager</alias>
                                     <run>
                                         <ports>
@@ -323,12 +323,12 @@
                                         </network>
                                         <wait>
                                             <log>Rest endpoint listening at flink-jobmanager:8081</log>
-                                            <time>120000</time>
+                                            <time>180000</time>
                                         </wait>
                                     </run>
                                 </image>
                                 <image>
-                                    <name>flink:1.9.2</name>
+                                    <name>flink:1.10.0</name>
                                     <alias>flink-taskmanager</alias>
                                     <run>
                                         <cmd>
@@ -347,7 +347,7 @@
                                         </network>
                                         <wait>
                                             <log>Successful registration</log>
-                                            <time>120000</time>
+                                            <time>180000</time>
                                         </wait>
                                     </run>
                                 </image>
@@ -363,11 +363,11 @@
                         <configuration>
                             <images>
                                 <image>
-                                    <name>flink:1.9.2</name>
+                                    <name>flink:1.10.0</name>
                                     <alias>flink-taskmanager</alias>
                                 </image>
                                 <image>
-                                    <name>flink:1.9.2</name>
+                                    <name>flink:1.10.0</name>
                                     <alias>flink-jobmanager</alias>
                                 </image>
                             </images>
