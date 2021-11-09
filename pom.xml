@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.nextbreakpoint</groupId>
     <artifactId>com.nextbreakpoint.flinkclient</artifactId>
-    <version>1.0.3</version>
+    <version>1.0.4</version>
     <packaging>jar</packaging>
     <description>Java library for managing Apache Flink via the Monitoring REST API</description>
     <name>com.nextbreakpoint.flinkclient</name>
@@ -32,37 +32,34 @@
         <maven.compiler.target>8</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <junit5jupiter.version>5.4.2</junit5jupiter.version>
-        <junit5platform.version>1.4.2</junit5platform.version>
-        <assertj.version>3.9.0</assertj.version>
-        <mockito.version>2.15.0</mockito.version>
-        <awaitility.version>3.1.6</awaitility.version>
-        <gson.version>2.8.5</gson.version>
+        <junit5jupiter.version>5.8.1</junit5jupiter.version>
+        <junit5platform.version>1.8.1</junit5platform.version>
+        <assertj.version>3.21.0</assertj.version>
+        <mockito.version>4.0.0</mockito.version>
+        <awaitility.version>4.1.1</awaitility.version>
+        <gson.version>2.8.9</gson.version>
         <okhttp.version>2.7.5</okhttp.version>
-        <gson-fire.version>1.8.3</gson-fire.version>
+        <gson-fire.version>1.8.5</gson-fire.version>
         <joda-time.version>2.10.1</joda-time.version>
         <jsr250-api.version>1.0</jsr250-api.version>
-        <threetenbp.version>1.3.8</threetenbp.version>
-        <swagger-core.version>2.1.1</swagger-core.version>
-        <swagger-annotations.version>2.1.1</swagger-annotations.version>
-        <jackson-annotations.version>2.10.0</jackson-annotations.version>
-        <slf4j-simple.version>1.7.25</slf4j-simple.version>
-        <maven-jar-plugin.version>3.1.0</maven-jar-plugin.version>
-        <maven-source-plugin.version>3.0.1</maven-source-plugin.version>
-        <maven-javadoc-plugin.version>2.10.4</maven-javadoc-plugin.version>
-        <maven-compiler-plugin.version>3.8.0</maven-compiler-plugin.version>
-        <maven-shade-plugin.version>3.2.1</maven-shade-plugin.version>
+        <threetenbp.version>1.5.2</threetenbp.version>
+        <swagger-annotations.version>2.1.11</swagger-annotations.version>
+        <maven-jar-plugin.version>3.2.0</maven-jar-plugin.version>
+        <maven-source-plugin.version>3.2.1</maven-source-plugin.version>
+        <maven-javadoc-plugin.version>3.3.1</maven-javadoc-plugin.version>
+        <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
+        <maven-shade-plugin.version>3.2.4</maven-shade-plugin.version>
         <maven-surefire-plugin.version>2.22.1</maven-surefire-plugin.version>
         <maven-failsafe-plugin.version>2.22.1</maven-failsafe-plugin.version>
-        <maven-toolchains-plugin.version>1.1</maven-toolchains-plugin.version>
+        <maven-toolchains-plugin.version>3.0.0</maven-toolchains-plugin.version>
         <maven-clean-plugin.version>3.1.0</maven-clean-plugin.version>
-        <build-helper-maven-plugin.version>3.0.0</build-helper-maven-plugin.version>
-        <maven-dependency-plugin.version>3.1.1</maven-dependency-plugin.version>
-        <maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
-        <swagger-codegen-maven-plugin.version>3.0.16</swagger-codegen-maven-plugin.version>
-        <nexus-staging-maven-plugin.version>1.6.7</nexus-staging-maven-plugin.version>
-        <github-release-plugin.version>1.1.1</github-release-plugin.version>
-        <docker-maven-plugin.version>0.30.0</docker-maven-plugin.version>
+        <build-helper-maven-plugin.version>3.2.0</build-helper-maven-plugin.version>
+        <maven-dependency-plugin.version>3.2.0</maven-dependency-plugin.version>
+        <maven-gpg-plugin.version>3.0.1</maven-gpg-plugin.version>
+        <swagger-codegen-maven-plugin.version>3.0.29</swagger-codegen-maven-plugin.version>
+        <nexus-staging-maven-plugin.version>1.6.8</nexus-staging-maven-plugin.version>
+        <github-release-plugin.version>1.4.0</github-release-plugin.version>
+        <docker-maven-plugin.version>0.37.0</docker-maven-plugin.version>
         <twitter-maven-plugin.version>1.0.1</twitter-maven-plugin.version>
         <nexus.host>https://oss.sonatype.org</nexus.host>
         <nexus.url>https://oss.sonatype.org/content/repositories/snapshots</nexus.url>
@@ -155,7 +152,7 @@
                 <configuration>
                     <toolchains>
                         <jdk>
-                            <version>[8,)</version>
+                            <version>8</version>
                         </jdk>
                     </toolchains>
                 </configuration>
