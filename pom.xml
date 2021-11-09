@@ -41,8 +41,8 @@
         <okhttp.version>2.7.5</okhttp.version>
         <gson-fire.version>1.8.5</gson-fire.version>
         <joda-time.version>2.10.1</joda-time.version>
-        <jsr250-api.version>1.0</jsr250-api.version>
         <threetenbp.version>1.5.2</threetenbp.version>
+        <javax.annotation-api.version>1.3.2</javax.annotation-api.version>
         <swagger-annotations.version>2.1.11</swagger-annotations.version>
         <maven-jar-plugin.version>3.2.0</maven-jar-plugin.version>
         <maven-source-plugin.version>3.2.1</maven-source-plugin.version>
@@ -94,8 +94,8 @@
         </dependency>
         <dependency>
             <groupId>javax.annotation</groupId>
-            <artifactId>jsr250-api</artifactId>
-            <version>${jsr250-api.version}</version>
+            <artifactId>javax.annotation-api</artifactId>
+            <version>${javax.annotation-api.version}</version>
         </dependency>
         <dependency>
             <groupId>org.threeten</groupId>
