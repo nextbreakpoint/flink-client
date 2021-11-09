@@ -1,7 +1,7 @@
 openapi: "3.0.0"
 info:
   title: Flink Client
-  version: 1.0.0
+  version: 1.0.0 # this is the version of the Flink Monitoring API
 basePath: /v1
 tags:
   - name: flink

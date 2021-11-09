@@ -8,7 +8,7 @@ The client is generated with [Swagger Codegen](https://swagger.io/tools/swagger-
 
 The library is distributed under the terms of BSD 3-Clause License.
 
-    Copyright (c) 2019-2020, Andrea Medeghini
+    Copyright (c) 2019-2021, Andrea Medeghini
     All rights reserved.
     
     Redistribution and use in source and binary forms, with or without
@@ -38,15 +38,21 @@ The library is distributed under the terms of BSD 3-Clause License.
 
 ## How to get the binaries
 
-The library is available in Maven Central Repository, Bintray, and GitHub.
+The library is available in Maven Central Repository, and GitHub.
 
 If you are using Maven, add this dependency to your POM:
 
     <dependency>
         <groupId>com.nextbreakpoint</groupId>
         <artifactId>com.nextbreakpoint.flinkclient</artifactId>
-        <version>1.0.3</version>
+        <version>1.0.4</version>
     </dependency>        
+
+## How to generate the code
+
+Generate the code from the [OpenAPI specification](https://github.com/nextbreakpoint/flink-client/blob/master/flink-openapi.yaml) using Maven:
+
+    mvn clean compile
 
 ## How to build the library
 
