@@ -2,11 +2,11 @@
     <toolchain>
         <type>jdk</type>
         <provides>
-            <version>8</version>
+            <version>11</version>
             <vendor>openjdk</vendor>
         </provides>
         <configuration>
-            <jdkHome>/usr/lib/jvm/adoptopenjdk-8-hotspot-amd64</jdkHome>
+            <jdkHome>/usr/lib/jvm/adoptopenjdk-11-hotspot-amd64</jdkHome>
         </configuration>
     </toolchain>
 </toolchains>

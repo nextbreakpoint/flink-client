@@ -9,7 +9,7 @@ jobs:
       uses: actions/setup-java@v2
       with:
         distribution: adopt
-        java-version: 8
+        java-version: 11
         cache: maven
         check-latest: true
     - name: Set up Docker
@@ -17,4 +17,4 @@ jobs:
     - name: List JDKs
       run: ls /usr/lib/jvm
     - name: Build and run tests
-      run: mvn -t toolchains.xml clean verify
+      run: MAVEN_OPTS=--add-opens=java.base/java.util=ALL-UNNAMED mvn -t toolchains.xml clean verify
