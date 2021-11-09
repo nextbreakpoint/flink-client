@@ -1611,7 +1611,6 @@ paths:
         - name: parallelism
           in: query
           description: Positive integer value that specifies the desired parallelism
-          description: Positive integer value that specifies the desired parallelism
           required: true
           schema:
             type: integer
