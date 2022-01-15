@@ -43,7 +43,7 @@
         <joda-time.version>2.10.1</joda-time.version>
         <threetenbp.version>1.5.2</threetenbp.version>
         <javax.annotation-api.version>1.3.2</javax.annotation-api.version>
-        <swagger-annotations.version>2.1.11</swagger-annotations.version>
+        <swagger-annotations.version>2.1.12</swagger-annotations.version>
         <maven-jar-plugin.version>3.2.0</maven-jar-plugin.version>
         <maven-source-plugin.version>3.2.1</maven-source-plugin.version>
         <maven-javadoc-plugin.version>3.3.1</maven-javadoc-plugin.version>
