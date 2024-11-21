@@ -1,0 +1,87 @@
+--- a/rest_v1_dispatcher.yml	(revision 79e285b336484df1a45ef0729c0d09ead7b9b942)
++++ b/rest_v1_dispatcher.yml	(date 1731884843184)
+@@ -95,10 +95,16 @@
+       operationId: uploadJar
+       requestBody:
+         content:
+-          application/x-java-archive:
++          multipart/form-data:
+             schema:
+-              type: string
+-              format: binary
++              type: object
++              properties:
++                jarfile:
++                  type: string
++                  format: binary
++            encoding:
++              jarfile:
++                contentType: application/x-java-archive
+         required: true
+       responses:
+         "200":
+@@ -1662,7 +1668,9 @@
+ components:
+   schemas:
+     AggregatedMetricsResponseBody:
+-      type: object
++      type: array
++      items:
++        $ref: '#/components/schemas/Metric'
+     AggregatedTaskDetailsInfo:
+       type: object
+       properties:
+@@ -2448,7 +2456,7 @@
+           type: integer
+           format: int32
+         slotSharingGroupId:
+-          $ref: '#/components/schemas/SlotSharingGroupId'
++          type: string
+         start-time:
+           type: integer
+           format: int64
+@@ -2719,12 +2727,9 @@
+         value:
+           type: string
+     MetricCollectionResponseBody:
+-      type: object
+-      properties:
+-        metrics:
+-          type: array
+-          items:
+-            $ref: '#/components/schemas/Metric'
++      type: array
++      items:
++        $ref: '#/components/schemas/Metric'
+     MultipleJobsDetails:
+       type: object
+       properties:
+@@ -2886,7 +2891,6 @@
+       properties:
+         serialized-throwable:
+           type: string
+-          format: binary
+     SerializedValueOptionalFailureObject:
+       type: object
+       properties:
+@@ -2902,20 +2906,6 @@
+           $ref: '#/components/schemas/JobID'
+         resource:
+           $ref: '#/components/schemas/ResourceProfileInfo'
+-    SlotSharingGroupId:
+-      type: object
+-      properties:
+-        bytes:
+-          type: array
+-          items:
+-            type: string
+-            format: byte
+-        lowerPart:
+-          type: integer
+-          format: int64
+-        upperPart:
+-          type: integer
+-          format: int64
+     StatsSummaryDto:
+       type: object
+       properties:

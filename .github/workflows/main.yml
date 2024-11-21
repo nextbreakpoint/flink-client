@@ -2,19 +2,27 @@ name: Flink Client CI
 on: [push]
 jobs:
   build:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
+    if: github.actor == github.event.repository.owner.login
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up JDK
-      uses: actions/setup-java@v2
-      with:
-        distribution: adopt
-        java-version: 11
-        cache: maven
-        check-latest: true
-    - name: Set up Docker
-      run: sh pipeline/setup-docker.sh
-    - name: List JDKs
-      run: ls /usr/lib/jvm
-    - name: Build and run tests
-      run: MAVEN_OPTS=--add-opens=java.base/java.util=ALL-UNNAMED mvn -t toolchains.xml clean verify
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Set up JDK
+        uses: actions/setup-java@v2
+        with:
+          distribution: temurin
+          java-version: 11
+          cache: maven
+          check-latest: true
+      - name: List JDKs
+        run: ls /usr/lib/jvm
+      - name: Create Directory
+        run: mkdir -p ~/.m2
+      - name: Copy Toolchains
+        run: cp toolchains-linux.xml ~/.m2/toolchains.xml
+      - name: Set up Docker
+        run: sh pipeline/setup-docker.sh
+      - name: List JDKs
+        run: ls /usr/lib/jvm
+      - name: Build and run tests
+        run: MAVEN_OPTS=--add-opens=java.base/java.util=ALL-UNNAMED mvn clean verify

@@ -2,13 +2,14 @@
 
 This library provides a Java client for managing Apache Flink via the [Monitoring REST API](https://ci.apache.org/projects/flink/flink-docs-stable/monitoring/rest_api.html).
 
-The client is generated with [Swagger Codegen](https://swagger.io/tools/swagger-codegen/) from an OpenAPI specification file.
+The client is generated with [Swagger Codegen](https://swagger.io/tools/swagger-codegen/) from the 
+[OpenAPI specification](https://nightlies.apache.org/flink/flink-docs-release-1.20/generated/rest_v1_dispatcher.yml).
 
 ## License
 
 The library is distributed under the terms of BSD 3-Clause License.
 
-    Copyright (c) 2019-2021, Andrea Medeghini
+    Copyright (c) 2019-2024, Andrea Medeghini
     All rights reserved.
     
     Redistribution and use in source and binary forms, with or without
@@ -44,8 +45,8 @@ If you are using Maven, add this dependency to your POM:
 
     <dependency>
         <groupId>com.nextbreakpoint</groupId>
-        <artifactId>com.nextbreakpoint.flinkclient</artifactId>
-        <version>1.0.4</version>
+        <artifactId>com.nextbreakpoint.flinkclient.core</artifactId>
+        <version>1.1.0</version>
     </dependency>        
 
 ## How to generate the code
@@ -82,21 +83,23 @@ Configure host and port of the server:
 
 Configure socket timeouts:
 
-    api.getApiClient().getHttpClient().setConnectTimeout(20000, TimeUnit.MILLISECONDS)
-    api.getApiClient().getHttpClient().setWriteTimeout(30000, TimeUnit.MILLISECONDS)
-    api.getApiClient().getHttpClient().setReadTimeout(30000, TimeUnit.MILLISECONDS)
+    api.getApiClient().setHttpClient(api.getApiClient().getHttpClient().newBuilder()
+            .connectTimeout(Duration.ofSeconds(20))
+            .writeTimeout(Duration.ofSeconds(30))
+            .readTimeout(Duration.ofSeconds(30))
+            .build());
 
 Optionally enable debugging:
 
-    api.getApiClient().setIsDebugging(true)
+    api.getApiClient().setDebugging(true);
 
 Get Flink cluster configuration:
 
-    DashboardConfiguration config = api.showConfig();
+    DashboardConfiguration config = api.getDashboardConfiguration();
 
 Show list of uploaded jars:
 
-    JarListInfo jars = api.listJars();
+    JarListInfo jars = api.getJarList();
 
 Upload a jar which contain a Flink job:
 
@@ -104,11 +107,11 @@ Upload a jar which contain a Flink job:
 
 Run an uploaded jar which some arguments:
 
-    JarRunResponseBody response = api.runJar("bf4afb3b-d662-435e-b465-5ddb40d68379_flink-job.jar", true, null, "--INPUT A --OUTPUT B", null, "your-main-class", null);
+    JarRunResponseBody response = api.submitJobFromJar("bf4afb3b-d662-435e-b465-5ddb40d68379_flink-job.jar", true, null, null, "--INPUT A --OUTPUT B", "your-main-class", null);
 
 Get status of all jobs:
 
-    JobIdsWithStatusOverview jobs = api.getJobs();
+    JobIdsWithStatusOverview jobs = api.getJobIdsWithStatusesOverview();
 
 Get details of a job:
 
@@ -116,18 +119,18 @@ Get details of a job:
 
 Terminate a job:
 
-    api.terminateJob("f370f5421e5254eed8d6fc6673829c83", "cancel");
+    api.cancelJob("f370f5421e5254eed8d6fc6673829c83", TerminationMode.CANCEL);
 
 For all the remaining operations see documentation of Monitoring REST API or see [OpenAPI specification file](https://github.com/nextbreakpoint/flink-client/blob/master/flink-openapi.yaml).
 
 ## Flink compatibility
 
-The current version of the library has been tested against Flink 1.10.0, but the library is known to work with older versions.   
-The library is compatible with Flink Monitoring REST API v1, which didn't change for long time (at least since Flink 1.7).
+The library is compatible with Flink Monitoring REST API v1.
+
+The current version of the library has been tested against Flink 1.20.0, but the library is known to work with older versions too.   
 The library should be compatible with newer versions too, unless a breaking change is introduced in the Flink Monitoring REST API. 
 
 ## Known limitations
 
-The library has integration tests with a code coverage of 90%. 
-Few endpoints don't have tests and not all fields in the responses are currently verified.
-      
+Some endpoints haven't been tested and not all fields in the responses are currently verified in the tests.
+ 
