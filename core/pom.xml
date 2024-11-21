@@ -340,26 +340,5 @@
                 </snapshotRepository>
             </distributionManagement>
         </profile>
-        <profile>
-            <id>github</id>
-            <activation>
-                <property>
-                    <name>channel</name>
-                    <value>github</value>
-                </property>
-            </activation>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>de.jutzig</groupId>
-                        <artifactId>github-release-plugin</artifactId>
-                        <configuration>
-                            <releaseName>${project.name} ${project.version}</releaseName>
-                            <tag>v${project.version}</tag>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
     </profiles>
 </project>
