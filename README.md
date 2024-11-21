@@ -1,6 +1,6 @@
 # flink-client
 
-This library provides a Java client for managing Apache Flink via the [Monitoring REST API](https://ci.apache.org/projects/flink/flink-docs-stable/monitoring/rest_api.html).
+This library provides a Java client for managing Apache Flink via the [REST API](https://nightlies.apache.org/flink/flink-docs-release-1.20/docs/ops/rest_api/).
 
 The client is generated with [Swagger Codegen](https://swagger.io/tools/swagger-codegen/) from the 
 [OpenAPI specification](https://nightlies.apache.org/flink/flink-docs-release-1.20/generated/rest_v1_dispatcher.yml).
@@ -51,7 +51,7 @@ If you are using Maven, add this dependency to your POM:
 
 ## How to generate the code
 
-Generate the code from the [OpenAPI specification](https://github.com/nextbreakpoint/flink-client/blob/master/flink-openapi.yaml) using Maven:
+Generate the code using Maven:
 
     mvn clean compile
 
@@ -121,7 +121,7 @@ Terminate a job:
 
     api.cancelJob("f370f5421e5254eed8d6fc6673829c83", TerminationMode.CANCEL);
 
-For all the remaining operations see documentation of Monitoring REST API or see [OpenAPI specification file](https://github.com/nextbreakpoint/flink-client/blob/master/flink-openapi.yaml).
+For all the remaining operations see the documentation of Flink's [REST API](https://nightlies.apache.org/flink/flink-docs-release-1.20/docs/ops/rest_api/).
 
 ## Flink compatibility
 
