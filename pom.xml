@@ -76,6 +76,7 @@
         <nexus.host>https://oss.sonatype.org</nexus.host>
         <nexus.url>https://oss.sonatype.org/content/repositories/snapshots</nexus.url>
         <nexus.autoreleaseafterclose>true</nexus.autoreleaseafterclose>
+        <github.draft>true</github.draft>
     </properties>
     <dependencyManagement>
         <dependencies>
@@ -561,6 +562,17 @@
                         <configuration>
                             <releaseName>${project.name} ${project.version}</releaseName>
                             <tag>v${project.version}</tag>
+                            <failOnExistingRelease>false</failOnExistingRelease>
+                            <overwriteArtifact>false</overwriteArtifact>
+                            <draft>${github.draft}</draft>
+                            <fileSets>
+                                <fileSet>
+                                    <directory>${project.basedir}</directory>
+                                    <includes>
+                                        <include>**/target/${project.artifactId}-${project.version}*.jar</include>
+                                    </includes>
+                                </fileSet>
+                            </fileSets>
                         </configuration>
                     </plugin>
                 </plugins>
