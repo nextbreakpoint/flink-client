@@ -560,7 +560,7 @@
                         <groupId>de.jutzig</groupId>
                         <artifactId>github-release-plugin</artifactId>
                         <configuration>
-                            <releaseName>${project.name} ${project.version}</releaseName>
+                            <releaseName>FlinkClient ${project.version}</releaseName>
                             <tag>v${project.version}</tag>
                             <failOnExistingRelease>false</failOnExistingRelease>
                             <overwriteArtifact>false</overwriteArtifact>
