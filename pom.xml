@@ -5,6 +5,7 @@
     <artifactId>com.nextbreakpoint.flinkclient</artifactId>
     <version>1.1.0</version>
     <packaging>pom</packaging>
+    <name>FlinkClient</name>
     <description>Java client for managing Apache Flink via REST API</description>
     <url>https://github.com/nextbreakpoint/flink-client</url>
     <licenses>
