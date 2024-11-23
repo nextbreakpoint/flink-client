@@ -569,7 +569,7 @@
                                 <fileSet>
                                     <directory>${project.basedir}</directory>
                                     <includes>
-                                        <include>**/target/${project.artifactId}-${project.version}*.jar</include>
+                                        <include>**/target/com.nextbreakpoint.flinkclient.core-${project.version}.jar</include>
                                     </includes>
                                 </fileSet>
                             </fileSets>
