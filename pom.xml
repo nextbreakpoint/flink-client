@@ -505,48 +505,6 @@
     </build>
     <profiles>
         <profile>
-            <id>ossrh</id>
-            <activation>
-                <property>
-                    <name>channel</name>
-                    <value>ossrh</value>
-                </property>
-            </activation>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-gpg-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>sign-artifacts</id>
-                                <phase>verify</phase>
-                                <goals>
-                                    <goal>sign</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.sonatype.plugins</groupId>
-                        <artifactId>nexus-staging-maven-plugin</artifactId>
-                        <extensions>true</extensions>
-                        <configuration>
-                            <serverId>ossrh</serverId>
-                            <nexusUrl>${nexus.host}</nexusUrl>
-                            <autoReleaseAfterClose>${nexus.autoreleaseafterclose}</autoReleaseAfterClose>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
-            <distributionManagement>
-                <snapshotRepository>
-                    <id>ossrh</id>
-                    <url>${nexus.url}</url>
-                </snapshotRepository>
-            </distributionManagement>
-        </profile>
-        <profile>
             <id>github</id>
             <activation>
                 <property>
@@ -559,20 +517,21 @@
                     <plugin>
                         <groupId>de.jutzig</groupId>
                         <artifactId>github-release-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>release</id>
+                                <goals>
+                                    <goal>release</goal>
+                                </goals>
+                            </execution>
+                        </executions>
                         <configuration>
                             <releaseName>FlinkClient ${project.version}</releaseName>
                             <tag>v${project.version}</tag>
                             <failOnExistingRelease>false</failOnExistingRelease>
                             <overwriteArtifact>false</overwriteArtifact>
                             <draft>${github.draft}</draft>
-                            <fileSets>
-                                <fileSet>
-                                    <directory>${project.basedir}</directory>
-                                    <includes>
-                                        <include>**/target/com.nextbreakpoint.flinkclient.core-${project.version}.jar</include>
-                                    </includes>
-                                </fileSet>
-                            </fileSets>
+                            <artifact>core/target/${project.artifactId}-${project.version}.${project.packaging}</artifact>
                         </configuration>
                     </plugin>
                 </plugins>
