@@ -584,6 +584,7 @@
                             <tag>v${project.version}</tag>
                             <failOnExistingRelease>false</failOnExistingRelease>
                             <overwriteArtifact>false</overwriteArtifact>
+                            <deleteRelease>true</deleteRelease>
                             <draft>${github.draft}</draft>
                         </configuration>
                     </plugin>
