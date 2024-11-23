@@ -21,3 +21,8 @@ start:
 .PHONY: stop
 stop:
 	mvn -pl core io.fabric8:docker-maven-plugin:stop@stop-flink
+
+.PHONY: release
+release:
+	mvn -Dchannel=ossrh clean deploy
+	mvn -Dchannel=github de.jutzig:github-release-plugin:release

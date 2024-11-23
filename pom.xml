@@ -24,10 +24,6 @@
         <developerConnection>scm:git:git@github.com:nextbreakpoint/flink-client.git</developerConnection>
         <url>git@github.com:nextbreakpoint/flink-client.git</url>
     </scm>
-    <modules>
-        <module>fixtures</module>
-        <module>core</module>
-    </modules>
     <properties>
         <java.version>11</java.version>
         <java.release>11</java.release>
@@ -505,6 +501,16 @@
     </build>
     <profiles>
         <profile>
+            <id>allmodules</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <modules>
+                <module>fixtures</module>
+                <module>core</module>
+            </modules>
+        </profile>
+        <profile>
             <id>ossrh</id>
             <activation>
                 <property>
@@ -512,6 +518,9 @@
                     <value>ossrh</value>
                 </property>
             </activation>
+            <modules>
+                <module>core</module>
+            </modules>
             <build>
                 <plugins>
                     <plugin>
@@ -554,6 +563,9 @@
                     <value>github</value>
                 </property>
             </activation>
+            <modules>
+                <module>core</module>
+            </modules>
             <build>
                 <plugins>
                     <plugin>
@@ -573,7 +585,6 @@
                             <failOnExistingRelease>false</failOnExistingRelease>
                             <overwriteArtifact>false</overwriteArtifact>
                             <draft>${github.draft}</draft>
-                            <artifact>core/target/${project.artifactId}-${project.version}.${project.packaging}</artifact>
                         </configuration>
                     </plugin>
                 </plugins>
