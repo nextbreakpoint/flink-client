@@ -6,10 +6,11 @@
     <parent>
         <groupId>com.nextbreakpoint</groupId>
         <artifactId>com.nextbreakpoint.flinkclient</artifactId>
-        <version>1.1.0</version>
+        <version>1.1.1</version>
     </parent>
     <artifactId>com.nextbreakpoint.flinkclient.fixtures</artifactId>
     <packaging>jar</packaging>
+    <name>com.nextbreakpoint.flinkclient.fixtures</name>
     <description>Apache Flink applications for testing</description>
     <properties>
         <flink-runtime-scope>provided</flink-runtime-scope>
