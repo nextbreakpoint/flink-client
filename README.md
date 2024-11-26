@@ -45,8 +45,8 @@ If you are using Maven, add this dependency to your POM:
 
     <dependency>
         <groupId>com.nextbreakpoint</groupId>
-        <artifactId>com.nextbreakpoint.flinkclient.core</artifactId>
-        <version>1.1.0</version>
+        <artifactId>com.nextbreakpoint.flink.client</artifactId>
+        <version>1.1.1</version>
     </dependency>        
 
 ## How to generate the code

@@ -16,11 +16,11 @@ verify:
 
 .PHONY: start
 start:
-	mvn -pl core io.fabric8:docker-maven-plugin:start@start-flink
+	mvn io.fabric8:docker-maven-plugin:start@start-flink
 
 .PHONY: stop
 stop:
-	mvn -pl core io.fabric8:docker-maven-plugin:stop@stop-flink
+	mvn io.fabric8:docker-maven-plugin:stop@stop-flink
 
 .PHONY: release
 release:
