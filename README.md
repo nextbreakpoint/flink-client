@@ -22,7 +22,7 @@ The library is distributed under the terms of BSD 3-Clause License.
       this list of conditions and the following disclaimer in the documentation
       and/or other materials provided with the distribution.
     
-    * Neither the name of the library nor the names of its
+    * Neither the name of the copyright holder nor the names of its
       contributors may be used to endorse or promote products derived from
       this software without specific prior written permission.
     
@@ -49,17 +49,19 @@ If you are using Maven, add this dependency to your POM:
         <version>1.1.1</version>
     </dependency>        
 
+## How to build the library
+
+Install Java 11 and Maven 3.9.
+
+Build the library using Maven:
+
+    mvn clean package
+
 ## How to generate the code
 
 Generate the code using Maven:
 
     mvn clean compile
-
-## How to build the library
-
-Build the library using Maven:
-
-    mvn clean package
 
 ## How to run the tests
 
@@ -71,7 +73,7 @@ Run the tests using Maven:
 
     mvn clean verify
 
-## Documentation
+## How to use the library
 
 Create the Flink client:
 
@@ -123,14 +125,14 @@ Terminate a job:
 
 For all the remaining operations see the documentation of Flink's [REST API](https://nightlies.apache.org/flink/flink-docs-release-1.20/docs/ops/rest_api/).
 
-## Flink compatibility
+## Compatibility with Flink REST API
 
-The library is compatible with Flink Monitoring REST API v1.
+The library is compatible with Flink REST API v1.
 
 The current version of the library has been tested against Flink 1.20.0, but the library is known to work with older versions too.   
-The library should be compatible with newer versions too, unless a breaking change is introduced in the Flink Monitoring REST API. 
+The library should be compatible with newer versions too, unless a breaking change is introduced in the Apache Flink REST API. 
 
 ## Known limitations
 
-Some endpoints haven't been tested and not all fields in the responses are currently verified in the tests.
+Please note that some operations haven't been tested and not all fields in the responses are currently verified in the tests.
  
