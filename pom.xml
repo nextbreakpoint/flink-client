@@ -678,7 +678,7 @@
                             <classifier>shaded</classifier>
                             <type>jar</type>
                             <overWrite>true</overWrite>
-                            <outputDirectory>${project.build.directory}/jobs</outputDirectory>
+                            <outputDirectory>${project.build.directory}/downloaded</outputDirectory>
                         </artifactItem>
                     </artifactItems>
                 </configuration>

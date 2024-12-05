@@ -36,10 +36,12 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 @Tag("slow")
 public class FlinkApiIT {
     //TODO find a better way to parameterise the tests
+    private static final String BASE_PATH = new File(System.getProperty("base.directory")).getAbsolutePath();
     private static final String JAR_PATH = "/tmp/com.nextbreakpoint.flink.dummies-" + System.getProperty("flink-dummies.version") + "-shaded.jar";
     private static final String ZIP_PATH = "/tmp/com.nextbreakpoint.flink.dummies-" + System.getProperty("flink-dummies.version") + "-shaded.zip";
     private static final String JAR_NAME = "com.nextbreakpoint.flink.dummies-" + System.getProperty("flink-dummies.version") + "-shaded.jar";
-    private static final String JAR_URL = "https://github.com/nextbreakpoint/flink-dummies/releases/download/v" + System.getProperty("flink-dummies.version") + "/com.nextbreakpoint.flink.dummies-" + System.getProperty("flink-dummies.version") + ".jar";
+    //private static final String JAR_URL = "https://github.com/nextbreakpoint/flink-dummies/releases/download/v" + System.getProperty("flink-dummies.version") + "/com.nextbreakpoint.flink.dummies-" + System.getProperty("flink-dummies.version") + ".jar";
+    private static final String JAR_URL = "file://" + BASE_PATH + "/target/downloaded/" + JAR_NAME;
     private static final String ENTRY_CLASS = "com.nextbreakpoint.flink.dummies.TemperatureMeasurementMain";
     private static final String FLINK_VERSION = System.getProperty("flink.version");
     private static final String SERVER_URL = "http://localhost:8081";
