@@ -158,11 +158,6 @@
                 <artifactId>awaitility</artifactId>
                 <version>${awaitility.version}</version>
             </dependency>
-<!--            <dependency>-->
-<!--                <groupId>com.nextbreakpoint</groupId>-->
-<!--                <artifactId>com.nextbreakpoint.flink.dummies</artifactId>-->
-<!--                <version>${flink-dummies.version}</version>-->
-<!--            </dependency>-->
         </dependencies>
     </dependencyManagement>
     <dependencies>
@@ -219,18 +214,13 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.junit.platform</groupId>
-            <artifactId>junit-platform-engine</artifactId>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-params</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.junit.platform</groupId>
             <artifactId>junit-platform-runner</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-params</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
