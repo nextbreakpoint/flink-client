@@ -43,6 +43,7 @@ public class FlinkApiIT {
     //private static final String JAR_URL = "https://github.com/nextbreakpoint/flink-dummies/releases/download/v" + System.getProperty("flink-dummies.version") + "/com.nextbreakpoint.flink.dummies-" + System.getProperty("flink-dummies.version") + ".jar";
     private static final String JAR_URL = "file://" + BASE_PATH + "/target/downloaded/" + JAR_NAME;
     private static final String ENTRY_CLASS = "com.nextbreakpoint.flink.dummies.TemperatureMeasurementMain";
+    private static final String CONFIG_FILE = "file:///var/docker/measurement.properties";
     private static final String FLINK_VERSION = System.getProperty("flink.version");
     private static final String SERVER_URL = "http://localhost:8081";
 
@@ -156,43 +157,13 @@ public class FlinkApiIT {
             dumpAsJson(jarUploadResponseBody);
             final JarFileInfo jarFileInfo = driver.getJarList().getFiles().get(0);
 
-            final List<String> properties = List.of(
-                "job.name: temperature-measurement",
-                "log.verbosity: 2",
-                "watermark.strategy.max-out-of-orderness: 5000",
-                "watermark.strategy.idle-timeout: 30000",
-                "source.max-delay: 5000",
-                "source.max-count: 0",
-                "bucket.output-path: temperature-measurement",
-                "bucket.check-interval: 30000",
-                "bucket.rollover-interval: 300000",
-                "bucket.inactivity-interval: 300000",
-                "bucket.max-part-size-mb: 1024",
-                "window.size: 60000",
-                "window.slide: 60000",
-                "flink.rest.bind-port: 8081",
-                "flink.parallelism.default: 4",
-                "flink.pipeline.max-parallelism: 128",
-                "flink.pipeline.auto-watermark-interval: 10000",
-                "flink.pipeline.operator-chaining.enabled: false",
-                "flink.state.backend.type: hashmap",
-                "flink.execution.checkpointing.dir: file:///tmp/temperature-measurement/checkpoints",
-                "flink.execution.checkpointing.savepoint-dir: file:///tmp/temperature-measurement/savepoints",
-                "flink.execution.checkpointing.interval: 15000",
-                "flink.restart-strategy.type: disable"
-            );
-
             // when
             final String jarId = jarFileInfo.getId();
             final JarPlanRequestBody jarPlanRequestBody = new JarPlanRequestBody();
             jarPlanRequestBody.entryClass(ENTRY_CLASS);
             jarPlanRequestBody.parallelism(1);
-            jarPlanRequestBody.addProgramArgsListItem("--OUTPUT_LOCATION");
-            jarPlanRequestBody.addProgramArgsListItem("file:///tmp");
-            jarPlanRequestBody.addProgramArgsListItem("--CONFIG_SEPARATOR");
-            jarPlanRequestBody.addProgramArgsListItem(",");
-            jarPlanRequestBody.addProgramArgsListItem("--CONFIG_PROPERTIES");
-            jarPlanRequestBody.addProgramArgsListItem(String.join(",", properties));
+            jarPlanRequestBody.addProgramArgsListItem("--CONFIG_FILE");
+            jarPlanRequestBody.addProgramArgsListItem(CONFIG_FILE);
             final JobPlanInfo jobPlanInfo = driver.generatePlanFromJar(jarId, jarPlanRequestBody, null, null, null, null);
 
             // then
@@ -577,7 +548,7 @@ public class FlinkApiIT {
             // then
             assertThat(checkpointConfigInfo).isNotNull();
             dumpAsJson(checkpointConfigInfo);
-            assertThat(checkpointConfigInfo.getInterval()).isEqualTo(15000L);
+            assertThat(checkpointConfigInfo.getInterval()).isEqualTo(10000L);
             assertThat(checkpointConfigInfo.getTimeout()).isEqualTo(600000L);
 
             Awaitility.await()
@@ -703,42 +674,12 @@ public class FlinkApiIT {
             assertThat(jarListInfo).isNotNull();
             dumpAsJson(jarListInfo);
 
-            final List<String> properties = List.of(
-                    "job.name: temperature-measurement",
-                    "log.verbosity: 2",
-                    "watermark.strategy.max-out-of-orderness: 5000",
-                    "watermark.strategy.idle-timeout: 30000",
-                    "source.max-delay: 5000",
-                    "source.max-count: 0",
-                    "bucket.output-path: temperature-measurement",
-                    "bucket.check-interval: 30000",
-                    "bucket.rollover-interval: 300000",
-                    "bucket.inactivity-interval: 300000",
-                    "bucket.max-part-size-mb: 1024",
-                    "window.size: 60000",
-                    "window.slide: 60000",
-                    "flink.rest.bind-port: 8081",
-                    "flink.parallelism.default: 4",
-                    "flink.pipeline.max-parallelism: 128",
-                    "flink.pipeline.auto-watermark-interval: 10000",
-                    "flink.pipeline.operator-chaining.enabled: false",
-                    "flink.state.backend.type: hashmap",
-                    "flink.execution.checkpointing.dir: file:///tmp/temperature-measurement/checkpoints",
-                    "flink.execution.checkpointing.savepoint-dir: file:///tmp/temperature-measurement/savepoints",
-                    "flink.execution.checkpointing.interval: 15000",
-                    "flink.restart-strategy.type: disable"
-            );
-
             final String jarId = jarListInfo.getFiles().get(0).getId();
             final JarRunRequestBody jarRunRequestBody = new JarRunRequestBody();
             jarRunRequestBody.entryClass(ENTRY_CLASS);
             jarRunRequestBody.parallelism(1);
-            jarRunRequestBody.addProgramArgsListItem("--OUTPUT_LOCATION");
-            jarRunRequestBody.addProgramArgsListItem("file:///tmp");
-            jarRunRequestBody.addProgramArgsListItem("--CONFIG_SEPARATOR");
-            jarRunRequestBody.addProgramArgsListItem(",");
-            jarRunRequestBody.addProgramArgsListItem("--CONFIG_PROPERTIES");
-            jarRunRequestBody.addProgramArgsListItem(String.join(",", properties));
+            jarRunRequestBody.addProgramArgsListItem("--CONFIG_FILE");
+            jarRunRequestBody.addProgramArgsListItem(CONFIG_FILE);
             final JarRunResponseBody response = driver.submitJobFromJar(jarId, jarRunRequestBody, true, null, null, null, null, null);
             assertThat(response).isNotNull();
             dumpAsJson(response);
