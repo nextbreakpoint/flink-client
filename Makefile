@@ -1,18 +1,26 @@
-.PHONY: package
-package:
-	mvn clean package
+.PHONY: build
+build:
+	mvn package
 
-.PHONY: install
-install:
-	mvn clean install
+.PHONY: clean
+clean:
+	mvn clean
 
 .PHONY: test
 test:
-	mvn clean test
+	mvn test
 
 .PHONY: verify
 verify:
-	mvn clean verify
+	mvn verify
+
+.PHONY: package
+package:
+	mvn package -DskipTests=true
+
+.PHONY: install
+install:
+	mvn install -DskipTests=true
 
 .PHONY: start
 start:
@@ -26,3 +34,7 @@ stop:
 release:
 	mvn -Dchannel=ossrh clean deploy
 	mvn -Dchannel=github de.jutzig:github-release-plugin:release
+
+.PHONY: version
+version:
+	@echo $(shell mvn -q help:evaluate -Dexpression=project.version -DforceStdout)

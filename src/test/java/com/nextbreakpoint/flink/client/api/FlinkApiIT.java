@@ -4,49 +4,9 @@
  */
 package com.nextbreakpoint.flink.client.api;
 
+import com.nextbreakpoint.flink.client.model.*;
 import com.nextbreakpoint.flink.client.support.Driver;
 import com.nextbreakpoint.flink.client.support.SyncDriver;
-import com.nextbreakpoint.flink.client.model.AggregatedMetricsResponseBody;
-import com.nextbreakpoint.flink.client.model.AggregationMode;
-import com.nextbreakpoint.flink.client.model.AsynchronousOperationResult;
-import com.nextbreakpoint.flink.client.model.CheckpointConfigInfo;
-import com.nextbreakpoint.flink.client.model.CheckpointStatistics;
-import com.nextbreakpoint.flink.client.model.CheckpointStatsStatus;
-import com.nextbreakpoint.flink.client.model.CheckpointingStatistics;
-import com.nextbreakpoint.flink.client.model.ClusterOverviewWithVersion;
-import com.nextbreakpoint.flink.client.model.ConfigurationInfoEntry;
-import com.nextbreakpoint.flink.client.model.DashboardConfiguration;
-import com.nextbreakpoint.flink.client.model.ExecutionState;
-import com.nextbreakpoint.flink.client.model.Id;
-import com.nextbreakpoint.flink.client.model.JarFileInfo;
-import com.nextbreakpoint.flink.client.model.JarListInfo;
-import com.nextbreakpoint.flink.client.model.JarRunResponseBody;
-import com.nextbreakpoint.flink.client.model.JarUploadResponseBody;
-import com.nextbreakpoint.flink.client.model.JobAccumulatorsInfo;
-import com.nextbreakpoint.flink.client.model.JobConfigInfo;
-import com.nextbreakpoint.flink.client.model.JobDetailsInfo;
-import com.nextbreakpoint.flink.client.model.JobExceptionsInfoWithHistory;
-import com.nextbreakpoint.flink.client.model.JobExecutionResultResponseBody;
-import com.nextbreakpoint.flink.client.model.JobIdWithStatus;
-import com.nextbreakpoint.flink.client.model.JobIdsWithStatusOverview;
-import com.nextbreakpoint.flink.client.model.JobPlanInfo;
-import com.nextbreakpoint.flink.client.model.JobVertexAccumulatorsInfo;
-import com.nextbreakpoint.flink.client.model.JobVertexBackPressureInfo;
-import com.nextbreakpoint.flink.client.model.JobVertexDetailsInfo;
-import com.nextbreakpoint.flink.client.model.JobVertexTaskManagersInfo;
-import com.nextbreakpoint.flink.client.model.MetricCollectionResponseBody;
-import com.nextbreakpoint.flink.client.model.MultipleJobsDetails;
-import com.nextbreakpoint.flink.client.model.SavepointDisposalRequest;
-import com.nextbreakpoint.flink.client.model.SavepointTriggerRequestBody;
-import com.nextbreakpoint.flink.client.model.SubtaskExecutionAttemptDetailsInfo;
-import com.nextbreakpoint.flink.client.model.SubtasksAllAccumulatorsInfo;
-import com.nextbreakpoint.flink.client.model.SubtasksTimesInfo;
-import com.nextbreakpoint.flink.client.model.TaskCheckpointStatisticsWithSubtaskDetails;
-import com.nextbreakpoint.flink.client.model.TaskManagerDetailsInfo;
-import com.nextbreakpoint.flink.client.model.TaskManagersInfo;
-import com.nextbreakpoint.flink.client.model.TerminationMode;
-import com.nextbreakpoint.flink.client.model.TriggerResponse;
-import com.nextbreakpoint.flink.client.model.UploadStatus;
 import com.nextbreakpoint.flink.client.support.AsyncDriver;
 import com.nextbreakpoint.flink.client.support.IOUtils;
 import org.awaitility.Awaitility;
@@ -80,8 +40,10 @@ public class FlinkApiIT {
     private static final String JAR_PATH = "/tmp/com.nextbreakpoint.flink.dummies-" + System.getProperty("flink-dummies.version") + "-shaded.jar";
     private static final String ZIP_PATH = "/tmp/com.nextbreakpoint.flink.dummies-" + System.getProperty("flink-dummies.version") + "-shaded.zip";
     private static final String JAR_NAME = "com.nextbreakpoint.flink.dummies-" + System.getProperty("flink-dummies.version") + "-shaded.jar";
-    private static final String JAR_URL = "file://" + BASE_PATH + "/target/jobs/" + JAR_NAME;
-    private static final String ENTRY_CLASS = "com.nextbreakpoint.flink.dummies.PrintMeasuresMain";
+    //private static final String JAR_URL = "https://github.com/nextbreakpoint/flink-dummies/releases/download/v" + System.getProperty("flink-dummies.version") + "/com.nextbreakpoint.flink.dummies-" + System.getProperty("flink-dummies.version") + ".jar";
+    private static final String JAR_URL = "file://" + BASE_PATH + "/target/downloaded/" + JAR_NAME;
+    private static final String ENTRY_CLASS = "com.nextbreakpoint.flink.dummies.TemperatureMeasurementMain";
+    private static final String CONFIG_FILE = "file:///var/docker/measurement.properties";
     private static final String FLINK_VERSION = System.getProperty("flink.version");
     private static final String SERVER_URL = "http://localhost:8081";
 
@@ -196,7 +158,13 @@ public class FlinkApiIT {
             final JarFileInfo jarFileInfo = driver.getJarList().getFiles().get(0);
 
             // when
-            final JobPlanInfo jobPlanInfo = driver.generatePlanFromJar(jarFileInfo.getId(), null, null, "--PARALLELISM 1 --MAX_COUNT -1", ENTRY_CLASS, null);
+            final String jarId = jarFileInfo.getId();
+            final JarPlanRequestBody jarPlanRequestBody = new JarPlanRequestBody();
+            jarPlanRequestBody.entryClass(ENTRY_CLASS);
+            jarPlanRequestBody.parallelism(1);
+            jarPlanRequestBody.addProgramArgsListItem("--CONFIG_FILE");
+            jarPlanRequestBody.addProgramArgsListItem(CONFIG_FILE);
+            final JobPlanInfo jobPlanInfo = driver.generatePlanFromJar(jarId, jarPlanRequestBody, null, null, null, null);
 
             // then
             assertThat(jobPlanInfo).isNotNull();
@@ -281,7 +249,7 @@ public class FlinkApiIT {
             dumpAsJson(jobDetailsInfo);
             assertThat(jobDetailsInfo.getPlan()).isNotNull();
             assertThat(jobDetailsInfo.getJid()).isEqualTo(jobId);
-            assertThat(jobDetailsInfo.getVertices()).hasSize(1);
+            assertThat(jobDetailsInfo.getVertices()).hasSize(8);
 
             // when
             final JobExecutionResultResponseBody jobExecutionResultResponseBody = driver.getJobExecutionResult(jobId);
@@ -598,17 +566,27 @@ public class FlinkApiIT {
                         assertThat(jobCheckpoints.getHistory()).isNotEmpty();
                     });
 
+            Awaitility.await()
+                    .pollInterval(1, TimeUnit.SECONDS)
+                    .pollDelay(5, TimeUnit.SECONDS)
+                    .atMost(60, TimeUnit.SECONDS)
+                    .untilAsserted(() -> {
+                        // given
+                        final CheckpointingStatistics jobCheckpoints = driver.getCheckpointingStatistics(jobId);
+                        final Long checkpointId = jobCheckpoints.getHistory().get(0).getId();
+
+                        // when
+                        final CheckpointStatistics jobCheckpointDetails = driver.getCheckpointStatisticDetails(jobId, checkpointId);
+
+                        // then
+                        assertThat(jobCheckpointDetails).isNotNull();
+                        dumpAsJson(jobCheckpointDetails);
+                        assertThat(jobCheckpointDetails.getStatus().getValue()).isEqualTo(CheckpointStatsStatus.COMPLETED.getValue());
+                    });
+
             // given
             final CheckpointingStatistics jobCheckpoints = driver.getCheckpointingStatistics(jobId);
             final Long checkpointId = jobCheckpoints.getHistory().get(0).getId();
-
-            // when
-            final CheckpointStatistics jobCheckpointDetails = driver.getCheckpointStatisticDetails(jobId, checkpointId);
-
-            // then
-            assertThat(jobCheckpointDetails).isNotNull();
-            dumpAsJson(jobCheckpointDetails);
-            assertThat(jobCheckpointDetails.getStatus().getValue()).isEqualTo(CheckpointStatsStatus.COMPLETED.getValue());
 
             // when
             final TaskCheckpointStatisticsWithSubtaskDetails jobCheckpointStatistics = driver.getTaskCheckpointStatistics(jobId, checkpointId, vertexId);
@@ -691,12 +669,21 @@ public class FlinkApiIT {
             final JarUploadResponseBody result = driver.uploadJar(new File(JAR_PATH));
             assertThat(result).isNotNull();
             dumpAsJson(result);
+
             final JarListInfo jarListInfo = driver.getJarList();
             assertThat(jarListInfo).isNotNull();
             dumpAsJson(jarListInfo);
-            final JarRunResponseBody response = driver.submitJobFromJar(jarListInfo.getFiles().get(0).getId(), null, true, null, null, "--PARALLELISM 1 --MAX_COUNT -1", ENTRY_CLASS, null);
+
+            final String jarId = jarListInfo.getFiles().get(0).getId();
+            final JarRunRequestBody jarRunRequestBody = new JarRunRequestBody();
+            jarRunRequestBody.entryClass(ENTRY_CLASS);
+            jarRunRequestBody.parallelism(1);
+            jarRunRequestBody.addProgramArgsListItem("--CONFIG_FILE");
+            jarRunRequestBody.addProgramArgsListItem(CONFIG_FILE);
+            final JarRunResponseBody response = driver.submitJobFromJar(jarId, jarRunRequestBody, true, null, null, null, null, null);
             assertThat(response).isNotNull();
             dumpAsJson(response);
+
             assertThat(response.getJobid()).isNotNull();
         }
 
@@ -704,6 +691,7 @@ public class FlinkApiIT {
             final JobIdsWithStatusOverview statusOverview = driver.getJobIdsWithStatusesOverview();
             assertThat(statusOverview).isNotNull();
             dumpAsJson(statusOverview);
+
             statusOverview.getJobs().forEach(jobIdWithStatus -> {
                 try {
                     driver.cancelJob(jobIdWithStatus.getId(), TerminationMode.CANCEL);

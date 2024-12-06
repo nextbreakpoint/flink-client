@@ -22,7 +22,5 @@ jobs:
         run: cp toolchains-linux.xml ~/.m2/toolchains.xml
       - name: Set up Docker
         run: sh pipeline/setup-docker.sh
-      - name: List JDKs
-        run: ls /usr/lib/jvm
       - name: Build and run tests
         run: MAVEN_OPTS=--add-opens=java.base/java.util=ALL-UNNAMED mvn clean verify
