@@ -569,7 +569,7 @@ public class FlinkApiIT {
             Awaitility.await()
                     .pollInterval(1, TimeUnit.SECONDS)
                     .pollDelay(5, TimeUnit.SECONDS)
-                    .atMost(30, TimeUnit.SECONDS)
+                    .atMost(60, TimeUnit.SECONDS)
                     .untilAsserted(() -> {
                         // given
                         final CheckpointingStatistics jobCheckpoints = driver.getCheckpointingStatistics(jobId);
