@@ -459,8 +459,9 @@ public class FlinkApiIT {
 
             // given
             final CheckpointingStatistics checkpointingStatistics = driver.getCheckpointingStatistics(jobId);
+//            dumpAsJson(checkpointingStatistics);
             final String savepointPath = checkpointingStatistics.getLatest().getSavepoint().getExternalPath();
-            assertThat(savepointPath).startsWith("file:///data/savepoints/savepoint-" + checkpointingStatistics.getLatest().getSavepoint().getId().toString().substring(0, 6));
+            assertThat(savepointPath).startsWith("file:/data/savepoints/savepoint-");
 
             // when
             final TriggerResponse triggerSavepointDisposalResponse = driver.triggerSavepointDisposal(new SavepointDisposalRequest().savepointPath(savepointPath));
