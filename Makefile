@@ -24,11 +24,15 @@ install:
 
 .PHONY: start
 start:
-	mvn io.fabric8:docker-maven-plugin:start@start-flink
+	docker compose up --wait
 
 .PHONY: stop
 stop:
-	mvn io.fabric8:docker-maven-plugin:stop@stop-flink
+	docker compose down
+
+.PHONY: terminate
+terminate:
+	docker compose down --volumes
 
 .PHONY: release
 release:
