@@ -1,0 +1,135 @@
+services:
+  jobmanager:
+    image: apache/flink:1.20.0-java11
+    hostname: jobmanager
+    command: 'jobmanager'
+    environment:
+      ENABLE_BUILT_IN_PLUGINS: "flink-s3-fs-hadoop-1.20.0.jar;flink-s3-fs-presto-1.20.0.jar"
+      FLINK_PROPERTIES: |
+        rest.bind-port: 8081
+        jobmanager.rpc.address: jobmanager
+        jobmanager.memory.jvm-overhead.min: 64mb
+        jobmanager.memory.jvm-metaspace.size: 192mb
+        jobmanager.memory.off-heap.size: 64mb
+        jobmanager.memory.process.size: 500mb
+        jobmanager.memory.flink.size: 200mb
+        state.backend.type: hashmap
+        execution.checkpointing.dir: file:///data/checkpoints
+        execution.checkpointing.savepoint-dir: file:///data/savepoints
+        parallelism.default: 1
+    ports:
+      - target: 8081
+        published: 8081
+        protocol: tcp
+        mode: ingress
+    volumes:
+      - jobmanager-data:/data
+      - ./config:/var/config
+    networks:
+      - flink
+    healthcheck:
+      test: [ "CMD-SHELL", "curl --output /dev/null --silent --fail http://localhost:8081"]
+      start_period: 10s
+      interval: 5s
+      timeout: 5s
+      retries: 5
+  taskmanager-1:
+    image: apache/flink:1.20.0-java11
+    hostname: taskmanager-1
+    command: 'taskmanager'
+    environment:
+      ENABLE_BUILT_IN_PLUGINS: "flink-s3-fs-hadoop-1.20.0.jar;flink-s3-fs-presto-1.20.0.jar"
+      FLINK_PROPERTIES: |
+        jobmanager.rpc.address: jobmanager
+        taskmanager.numberOfTaskSlots: 2
+        taskmanager.memory.jvm-overhead.min: 64mb
+        taskmanager.memory.jvm-metaspace.size: 192mb
+        taskmanager.memory.framework.heap.size: 64mb
+        taskmanager.memory.framework.off-heap.size: 64mb
+        taskmanager.memory.process.size: 600mb
+        taskmanager.memory.flink.size: 300mb
+        taskmanager.memory.network.fraction: 0.1
+        taskmanager.memory.managed.fraction: 0.1
+        state.backend.type: hashmap
+        execution.checkpointing.dir: file:///data/checkpoints
+        execution.checkpointing.savepoint-dir: file:///data/savepoints
+        parallelism.default: 1
+    networks:
+      - flink
+    ports:
+      - target: 9250
+        published: 9251
+        protocol: tcp
+        mode: ingress
+    volumes:
+      - taskmanager-1-data:/data
+#    healthcheck:
+#      test: [ "CMD-SHELL", "nc -z taskmanager1 9250"]
+#      start_period: 10s
+#      interval: 5s
+#      timeout: 5s
+#      retries: 5
+    depends_on:
+      jobmanager:
+        condition: service_healthy
+  taskmanager-2:
+    image: apache/flink:1.20.0-java11
+    hostname: taskmanager-2
+    command: 'taskmanager'
+    environment:
+      ENABLE_BUILT_IN_PLUGINS: "flink-s3-fs-hadoop-1.20.0.jar;flink-s3-fs-presto-1.20.0.jar"
+      FLINK_PROPERTIES: |
+        jobmanager.rpc.address: jobmanager
+        taskmanager.numberOfTaskSlots: 2
+        taskmanager.memory.jvm-overhead.min: 64mb
+        taskmanager.memory.jvm-metaspace.size: 192mb
+        taskmanager.memory.framework.heap.size: 64mb
+        taskmanager.memory.framework.off-heap.size: 64mb
+        taskmanager.memory.process.size: 600mb
+        taskmanager.memory.flink.size: 300mb
+        taskmanager.memory.network.fraction: 0.1
+        taskmanager.memory.managed.fraction: 0.1
+        state.backend.type: hashmap
+        execution.checkpointing.dir: file:///data/checkpoints
+        execution.checkpointing.savepoint-dir: file:///data/savepoints
+        parallelism.default: 1
+    networks:
+      - flink
+    ports:
+      - target: 9250
+        published: 9252
+        protocol: tcp
+        mode: ingress
+    volumes:
+      - taskmanager-2-data:/data
+#    healthcheck:
+#      test: [ "CMD-SHELL", "nc -z taskmanager2 9250"]
+#      start_period: 10s
+#      interval: 5s
+#      timeout: 5s
+#      retries: 5
+    depends_on:
+      jobmanager:
+        condition: service_healthy
+networks:
+  flink:
+    driver: bridge
+volumes:
+  jobmanager-data:
+    driver: local
+    driver_opts:
+      type: tmpfs
+      device: tmpfs
+      o: "size=100m,uid=9999"
+  taskmanager-1-data:
+    driver: local
+    driver_opts:
+      type: tmpfs
+      device: tmpfs
+      o: "size=100m,uid=9999"
+  taskmanager-2-data:
+    driver: local
+    driver_opts:
+      type: tmpfs
+      device: tmpfs
+      o: "size=100m,uid=9999"

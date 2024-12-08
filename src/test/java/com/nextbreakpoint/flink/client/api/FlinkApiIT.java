@@ -43,7 +43,7 @@ public class FlinkApiIT {
     //private static final String JAR_URL = "https://github.com/nextbreakpoint/flink-dummies/releases/download/v" + System.getProperty("flink-dummies.version") + "/com.nextbreakpoint.flink.dummies-" + System.getProperty("flink-dummies.version") + ".jar";
     private static final String JAR_URL = "file://" + BASE_PATH + "/target/downloaded/" + JAR_NAME;
     private static final String ENTRY_CLASS = "com.nextbreakpoint.flink.dummies.TemperatureMeasurementMain";
-    private static final String CONFIG_FILE = "file:///var/docker/measurement.properties";
+    private static final String CONFIG_FILE = "file:///var/config/measurement.properties";
     private static final String FLINK_VERSION = System.getProperty("flink.version");
     private static final String SERVER_URL = "http://localhost:8081";
 
@@ -426,7 +426,7 @@ public class FlinkApiIT {
                     });
 
             // when
-            final TriggerResponse triggerSavepointResponse = driver.triggerSavepoint(jobId, new SavepointTriggerRequestBody().cancelJob(false).targetDirectory("file:///var/tmp"));
+            final TriggerResponse triggerSavepointResponse = driver.triggerSavepoint(jobId, new SavepointTriggerRequestBody().cancelJob(false).targetDirectory("file:///data/savepoints"));
 
             // then
             assertThat(triggerSavepointResponse).isNotNull();
@@ -459,7 +459,9 @@ public class FlinkApiIT {
 
             // given
             final CheckpointingStatistics checkpointingStatistics = driver.getCheckpointingStatistics(jobId);
+//            dumpAsJson(checkpointingStatistics);
             final String savepointPath = checkpointingStatistics.getLatest().getSavepoint().getExternalPath();
+            assertThat(savepointPath).startsWith("file:/data/savepoints/savepoint-");
 
             // when
             final TriggerResponse triggerSavepointDisposalResponse = driver.triggerSavepointDisposal(new SavepointDisposalRequest().savepointPath(savepointPath));
@@ -756,7 +758,7 @@ public class FlinkApiIT {
 
         public static void verifyTaskManagersInfo(TaskManagersInfo taskManagerInfo) {
             assertThat(taskManagerInfo.getTaskmanagers()).isNotNull();
-            assertThat(taskManagerInfo.getTaskmanagers()).hasSize(1);
+            assertThat(taskManagerInfo.getTaskmanagers()).hasSize(2);
         }
 
         public static void verifyMultipleJobsDetails(MultipleJobsDetails multipleJobsDetails) {
